@@ -55,9 +55,9 @@ RecordingStudioIdentity.configure do |config|
       description: "Creators, influencers and individuals",
       icon: "user",
       fields: {
-        name: "Full name",
-        description: "Biography",
-        image: "Profile photo",
+        name: "Name",
+        description: "About",
+        image: "Image",
         website_url: "Website"
       }
     }
@@ -71,7 +71,7 @@ RecordingStudioIdentity.configure do |config|
 end
 ```
 
-`config.types` is a map of category key to label, description, icon, and field labels. Keys are normalized to lowercase. Duplicate normalized keys are rejected. Unknown options and unknown field names are rejected. Field labels change presentation only. Every category uses the same model.
+`config.types` is a map of category key to label, description, icon, and field labels. Keys are normalized to lowercase. Duplicate normalized keys are rejected. Unknown options and unknown field names are rejected. Field labels change presentation only. Every category uses the same model. The default labels are Name, About, Image, and Website. Set `fields` to replace any of them.
 
 Icons accept the Heroicon names used by FlatPack. `user-round`, `building-2`, and `users` are accepted as aliases.
 

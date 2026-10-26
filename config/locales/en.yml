@@ -30,7 +30,7 @@ en:
         remove_image: "Remove image"
       fields:
         name: "Name"
-        description: "Description"
+        description: "About"
         image: "Image"
         website_url: "Website"
       placeholders:

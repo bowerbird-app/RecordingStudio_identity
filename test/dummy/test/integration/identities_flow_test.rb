@@ -41,7 +41,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "+ Identity"
   end
 
-  test "category selection uses configured copy and company field labels" do
+  test "category selection uses configured copy and shared field labels" do
     get recording_studio_identity.new_recording_identity_path(@agency)
 
     assert_response :success
@@ -54,9 +54,13 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_identity.new_recording_identity_path(@agency, kind: "company")
 
     assert_response :success
-    assert_includes response.body, "Company name"
-    assert_includes response.body, "About the company"
-    assert_includes response.body, "Company logo"
+    assert_includes response.body, "Name"
+    assert_includes response.body, "Website"
+    assert_includes response.body, "About"
+    assert_includes response.body, "Image"
+    refute_includes response.body, "Company name"
+    refute_includes response.body, "About the company"
+    refute_includes response.body, "Company logo"
     assert_includes response.body, "Upload image"
     assert_includes response.body, "image[signed_blob_id]"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
@@ -88,8 +92,10 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_identity.edit_identity_path(identity)
 
     assert_response :success
-    assert_includes response.body, "Full name"
-    assert_includes response.body, "Biography"
+    assert_includes response.body, "Name"
+    assert_includes response.body, "About"
+    refute_includes response.body, "Full name"
+    refute_includes response.body, "Biography"
     assert_includes response.body, "Change image"
     assert_includes response.body, "Remove image"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"

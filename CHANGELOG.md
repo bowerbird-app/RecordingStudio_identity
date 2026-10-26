@@ -14,11 +14,14 @@ This version replaces the addon template with Recording Studio Identity. Hosts t
 
 Add and edit screens list name, website, description, then image. The sentence under the image control is gone. Edit saves a new image with the identity. Remove image still deletes immediately.
 
+Default field labels are Name, About, Image, and Website. A host `fields` map still replaces any of those labels.
+
 Moving Recording Studio Company records onto identities is a separate migration. It is not run by this release. It has to copy recording references, revision history, images, and parent relationships, and Press Kits has to be pointed at the new recordings.
 
 ### Changed
 
 - Add and edit forms show name, website, description, then image. The hint under the image control is gone. Edit saves a new image with the identity.
+- Default and demo field labels are Name, About, Image, and Website.
 
 ### Added
 

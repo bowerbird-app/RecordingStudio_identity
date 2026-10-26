@@ -11,7 +11,10 @@ class ConfigurationTest < Minitest::Test
     keys = @configuration.categories.map(&:key)
 
     assert_equal %w[person company brand organisation], keys
-    assert_equal "Full name", @configuration.category("person").field_label(:name)
+    assert_equal "Name", @configuration.category("person").field_label(:name)
+    assert_equal "About", @configuration.category("person").field_label(:description)
+    assert_equal "Website", @configuration.category("company").field_label(:website_url)
+    assert_equal "Image", @configuration.category("brand").field_label(:image)
     assert_equal "What would you like to represent?", @configuration.creation.title
     assert_equal "Continue", @configuration.creation.continue_label
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
@@ -23,6 +26,21 @@ class ConfigurationTest < Minitest::Test
     end
 
     assert_includes error.message, "Duplicate identity category"
+  end
+
+  def test_host_field_labels_replace_the_shared_defaults
+    locale = File.expand_path("../config/locales/en.yml", __dir__)
+    unless I18n.load_path.include?(locale)
+      I18n.load_path << locale
+      I18n.reload!
+    end
+
+    @configuration.types = { person: { fields: { name: "Full name", description: "Biography" } } }
+    category = @configuration.category("person")
+
+    assert_equal "Full name", category.field_label(:name)
+    assert_equal "Biography", category.field_label(:description)
+    assert_equal "Website", category.field_label(:website_url)
   end
 
   def test_types_reject_unknown_field_labels

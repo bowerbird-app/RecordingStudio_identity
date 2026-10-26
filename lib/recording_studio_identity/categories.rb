@@ -26,6 +26,12 @@ module RecordingStudioIdentity
   # Host category registry. Keys are normalized once at the configuration boundary.
   module Categories
     FIELD_NAMES = %i[name description image website_url].freeze
+    DEFAULT_FIELD_LABELS = {
+      name: "Name",
+      description: "About",
+      image: "Image",
+      website_url: "Website"
+    }.freeze
     KEY_FORMAT = /\A[a-z][a-z0-9_]*\z/
     ICON_ALIASES = {
       "user-round" => "user",
@@ -37,33 +43,25 @@ module RecordingStudioIdentity
         label: "Person",
         description: "Creators, influencers and individuals",
         icon: "user",
-        fields: {
-          name: "Full name",
-          description: "Biography",
-          image: "Profile photo",
-          website_url: "Website"
-        }
+        fields: DEFAULT_FIELD_LABELS
       },
       company: {
         label: "Company",
         description: "Businesses and corporations",
         icon: "building-office-2",
-        fields: {
-          name: "Company name",
-          description: "About the company",
-          image: "Company logo",
-          website_url: "Website"
-        }
+        fields: DEFAULT_FIELD_LABELS
       },
       brand: {
         label: "Brand",
         description: "Products and commercial brands",
-        icon: "tag"
+        icon: "tag",
+        fields: DEFAULT_FIELD_LABELS
       },
       organisation: {
         label: "Organisation",
         description: "Clubs, institutions and nonprofits",
-        icon: "user-group"
+        icon: "user-group",
+        fields: DEFAULT_FIELD_LABELS
       }
     }.freeze
 

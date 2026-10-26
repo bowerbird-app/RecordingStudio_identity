@@ -6,7 +6,7 @@ RecordingStudioIdentity.configure do |config|
   #     label: "Person",
   #     description: "Creators, influencers and individuals",
   #     icon: "user",
-  #     fields: { name: "Full name", description: "Biography", image: "Profile photo" }
+  #     fields: { name: "Name", description: "About", image: "Image", website_url: "Website" }
   #   }
   # }
   #
