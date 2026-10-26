@@ -3,14 +3,33 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Replace this placeholder with the configuration settings your generated gem exposes.",
+    subtitle: "Category labels and the creation screen come from RecordingStudioIdentity.configure.",
     variant: :h1
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,
     code: <<~'CODE'
-      # Add the config settings for the gem here.
+      RecordingStudioIdentity.configure do |config|
+        config.label = "Press profile"
+        config.plural_label = "Press profiles"
+
+        config.types = {
+          person: {
+            label: "Person",
+            description: "Creators, influencers and individuals",
+            icon: "user",
+            fields: { name: "Name", description: "About", image: "Image", website_url: "Website" }
+          }
+        }
+
+        config.creation = {
+          title: "Who is this press profile for?",
+          # Kept on the config object. The category screen does not render it.
+          description: "Choose the type of press profile you'd like to create.",
+          continue_label: "Continue"
+        }
+      end
     CODE
   ) %>
 </div>

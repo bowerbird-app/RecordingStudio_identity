@@ -1,0 +1,55 @@
+<% many = @allowance == :many %>
+<% heading = identity_t("titles.index") %>
+<% home_path = identity_home_path %>
+<% recording_studio_page_nav(
+  title: heading,
+  page_nav_back_url: home_path,
+  page_nav_back_label: (home_path && identity_t("navigation.home"))
+) %>
+<% if identity_can?(:create, @parent) %>
+  <% recording_studio_page_nav_right do %>
+    <%= render FlatPack::Button::Component.new(
+      text: identity_t("actions.add_identity_plus"),
+      style: :default,
+      href: new_recording_identity_path(@parent)
+    ) %>
+  <% end %>
+<% end %>
+
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: heading) %>
+
+  <% if many %>
+    <%= render "list", parent: @parent, identities: @identities, trashed_identities: @trashed_identities %>
+  <% elsif @integrity_error %>
+    <% identities = @integrity_error.identities %>
+    <%= render FlatPack::Alert::Component.new(
+      style: :danger,
+      title: identity_t("integrity.title", name: identity_recording_name(@parent), count: identities.size),
+      description: [
+        identity_t("integrity.holds_one", type: identity_recording_type_label(@parent).downcase),
+        identity_t("integrity.stays_off")
+      ].join(" ")
+    ) %>
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <% identities.each do |identity| %>
+        <%= render FlatPack::List::Item.new do %>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="font-medium"><%= identity.recordable.name %><%= identity_t("trash.in_trash_suffix") if identity.trashed_at %></span>
+            <%= render FlatPack::Button::Component.new(
+              text: identity_t("actions.view"),
+              style: :ghost,
+              size: :sm,
+              href: identity_path(identity),
+              aria: { label: identity_t("actions.view_aria", name: identity.recordable.name) }
+            ) %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% elsif @identity && @identity.trashed_at.nil? %>
+    <%= render "list", parent: @parent, identities: [@identity], trashed_identities: [] %>
+  <% else %>
+    <%= render "vacancy", parent: @parent, identity: @identity %>
+  <% end %>
+</div>

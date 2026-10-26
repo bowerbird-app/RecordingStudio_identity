@@ -1,0 +1,81 @@
+en:
+  recording_studio:
+    identity:
+      terminology:
+        label: "Identity"
+        plural_label: "Identities"
+      navigation:
+        back: "Back"
+        home: "Home"
+      creation:
+        title: "What would you like to represent?"
+        description: "Choose the type of %{term} you'd like to create."
+        continue_label: "Continue"
+      titles:
+        index: "%{plural_label}"
+        add: "Add %{term}"
+        edit: "Edit %{term}"
+        edit_with_name: "Edit %{name}"
+      actions:
+        add_identity: "Add %{term}"
+        add_identity_plus: "+ %{label}"
+        edit_identity: "Edit %{term}"
+        save: "Save"
+        cancel: "Cancel"
+        delete: "Delete"
+        restore: "Restore"
+        restore_identity: "Restore %{term}"
+        restore_aria: "Restore %{name}"
+        view: "View"
+        view_aria: "View %{name}"
+      fields:
+        name: "Name"
+        description: "About"
+        image: "Image"
+        website_url: "Website"
+      placeholders:
+        website: "https://example.com"
+      empty:
+        no_identity_title: "No %{term} yet"
+        no_identity_description: "This %{type} holds one %{term}."
+        no_identities_title: "No %{plural} yet"
+        no_identities_description: "%{plural_label} added to %{name} are listed here."
+      unconfigured:
+        title: "No %{term} categories are configured"
+        description: "Add at least one category before creating %{article} %{term}."
+      trash:
+        in_trash_title: "%{name} is in the trash"
+        restore_hint: "Restore it to change it again."
+        vacancy_description: "This %{type} holds one %{term}. Restore %{name} to use it again."
+        section_title: "In trash"
+        section_subtitle: "Restore %{article} %{term} to list it again."
+        in_trash_suffix: " (in the trash)"
+      integrity:
+        title: "%{name} has %{count} %{plural}"
+        holds_one: "This %{type} holds one %{term}."
+        stays_off: "Adding %{article} %{term} stays off until the extra %{plural} are moved or purged."
+      form:
+        save_failed_title: "The %{term} could not be saved"
+      image:
+        alt: "%{name} image"
+      flashes:
+        cant_add: "%{Article} %{term} can't be added here."
+        was_added: "%{name} was added."
+        was_saved: "%{name} was saved."
+        in_trash: "%{name} is in the trash."
+        was_restored: "%{name} was restored."
+        cant_edit: "You can't edit %{name}."
+        choose_image: "Choose an image to upload."
+        image_updated: "The image was updated."
+        image_removed: "The image was removed."
+        already_identity: "%{name} is already the %{term} here"
+        integrity_recorded: "Only one %{term} is allowed here, but %{count} %{plural} are recorded"
+        restore_before_change: "Restore %{name} before changing it"
+      errors:
+        not_found: "Not found"
+        page_missing: "This page doesn't exist, or you can't see it."
+        not_allowed: "Not allowed"
+        forbidden_description: "You don't have permission to make this change."
+      messages:
+        identity_taken: "Only one %{term} is allowed here"
+        image_taken: "%{Article} %{term} can have only one image"

@@ -1,0 +1,46 @@
+<%# locals: (parent:, identities:, trashed_identities:) %>
+<% if identities.empty? %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: identity_t("empty.no_identities_title"),
+    description: identity_t("empty.no_identities_description", name: identity_recording_name(parent)),
+    icon: :user
+  ) %>
+<% else %>
+  <div class="grid gap-4 md:grid-cols-2">
+    <% identities.each do |identity| %>
+      <%= link_to identity_path(identity), class: "block no-underline" do %>
+        <%= recording_studio_identity_card(identity, description: false, website: false) %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if trashed_identities.any? %>
+  <div class="flex flex-col gap-3">
+    <%= render FlatPack::PageTitle::Component.new(
+      title: identity_t("trash.section_title"),
+      subtitle: identity_t("trash.section_subtitle"),
+      variant: :h3
+    ) %>
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <% trashed_identities.each do |identity| %>
+        <%= render FlatPack::List::Item.new do %>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="font-medium"><%= identity.recordable.name %></span>
+            <% if identity_can?(:restore, identity) %>
+              <%= form_with url: restore_identity_path(identity), method: :post, class: "inline-flex" do %>
+                <%= render FlatPack::Button::Component.new(
+                  text: identity_t("actions.restore"),
+                  style: :ghost,
+                  size: :sm,
+                  type: "submit",
+                  aria: { label: identity_t("actions.restore_aria", name: identity.recordable.name) }
+                ) %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,5 +1,9 @@
 require_relative "boot"
 
+if ENV["RAILS_ENV"] == "test"
+  require_relative "../../../test/simplecov_helper"
+end
+
 require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"

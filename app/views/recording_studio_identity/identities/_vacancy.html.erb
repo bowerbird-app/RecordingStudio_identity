@@ -1,0 +1,27 @@
+<%# locals: (parent:, identity:) %>
+<% if identity&.trashed_at %>
+  <%= render FlatPack::Alert::Component.new(
+    style: :warning,
+    title: identity_t("trash.in_trash_title", name: identity.recordable.name),
+    description: identity_t(
+      "trash.vacancy_description",
+      type: identity_recording_type_label(parent).downcase,
+      name: identity.recordable.name
+    )
+  ) %>
+  <% if identity_can?(:restore, identity) %>
+    <%= form_with url: restore_identity_path(identity), method: :post, class: "inline-flex" do %>
+      <%= render FlatPack::Button::Component.new(
+        text: identity_t("actions.restore_identity"),
+        style: :primary,
+        type: "submit"
+      ) %>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= render FlatPack::EmptyState::Component.new(
+    title: identity_t("empty.no_identity_title"),
+    description: identity_t("empty.no_identity_description", type: identity_recording_type_label(parent).downcase),
+    icon: :user
+  ) %>
+<% end %>

@@ -36,17 +36,18 @@ end
 def dummy_bundle_env
   dummy_bundle_base_env.merge(DUMMY_BUNDLE_CLEARED_ENV).tap do |env|
     env["BUNDLE_PATH"] = ENV["BUNDLE_PATH"] if ENV["BUNDLE_PATH"]
+    env["RAILS_ENV"] = "test"
   end
 end
 
 def dummy_bundle_base_env
   {
-    "BUNDLE_GEMFILE" => DUMMY_GEMFILE,
-    "DISABLE_SIMPLECOV" => "true"
+    "BUNDLE_GEMFILE" => DUMMY_GEMFILE
   }
 end
 
 Rake::TestTask.new(:test) do |t|
+  ENV["SIMPLECOV_COMMAND_NAME"] ||= "root"
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"].exclude(*ROOT_TEST_EXCLUSIONS)
   t.verbose = false
@@ -69,9 +70,12 @@ namespace :test do
       env = dummy_bundle_env
 
       run_command!(env, "bundle", "exec", "bin/rails", "db:prepare")
-      run_command!(env, "bundle", "exec", "bin/rails", "test")
+      run_command!(env.merge("SIMPLECOV_COMMAND_NAME" => "dummy-rails"), "bundle", "exec", "bin/rails", "test")
       DUMMY_TEST_FILES.each do |test_file|
-        run_command!(env, "bundle", "exec", "ruby", "-I#{TEST_ROOT}", test_file)
+        run_command!(
+          env.merge("SIMPLECOV_COMMAND_NAME" => "dummy-#{File.basename(test_file, '.rb')}"),
+          "bundle", "exec", "ruby", "-I#{TEST_ROOT}", test_file
+        )
       end
     end
   end

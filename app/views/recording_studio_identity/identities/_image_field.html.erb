@@ -1,0 +1,27 @@
+<%# locals: (identity:, category:) %>
+<% image = identity && RecordingStudioIdentity.image(identity) %>
+<% label = identity_field_label(category, :image) %>
+<% display_name = image && RecordingStudioIdentity.display_name(identity) %>
+<% src = image && authorized_attachment_preview_path(image, :square_med) %>
+<% alt = display_name && identity_t("image.alt", name: display_name) %>
+<%= render FlatPack::ImageInput::Component.new(
+  name: "image[file]",
+  src: src,
+  alt: alt,
+  label: label,
+  shape: :circle,
+  size: :xl,
+  accept: identity_image_accept,
+  remove_name: (image ? "image[remove]" : nil),
+  input_attributes: {
+    data: {
+      recording_studio_attachable__attachment_revision_upload_target: "fileInput",
+      action: "change->recording-studio-attachable--attachment-revision-upload#fileSelected"
+    }
+  },
+  data: { testid: "identity-image-field" }
+) do %>
+  <%= hidden_field_tag "image[signed_blob_id]", "",
+        id: nil,
+        data: { recording_studio_attachable__attachment_revision_upload_target: "signedBlobInput" } %>
+<% end %>

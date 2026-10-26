@@ -1,0 +1,47 @@
+<% creation = RecordingStudioIdentity.creation %>
+<% recording_studio_page_nav(
+  title: creation.title,
+  page_nav_back_url: recording_identities_path(@parent),
+  page_nav_back_label: identity_t("navigation.back")
+) %>
+
+<div class="flex w-full max-w-3xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(title: creation.title) %>
+
+  <% if @unknown_kind %>
+    <%= render FlatPack::Alert::Component.new(
+      style: :danger,
+      title: identity_t("form.save_failed_title"),
+      description: "Choose one of the configured categories."
+    ) %>
+  <% end %>
+
+  <%= form_with url: new_recording_identity_path(@parent), method: :get, class: "flex flex-col gap-4" do %>
+    <fieldset class="grid gap-3 sm:grid-cols-2">
+      <legend class="sr-only"><%= creation.title %></legend>
+      <% @categories.each do |category| %>
+        <label class="block cursor-pointer">
+          <input type="radio" name="kind" value="<%= category.key %>" class="peer sr-only" required>
+          <span class="flex h-full gap-3 rounded-2xl border border-(--surface-border-color) bg-(--surface-background-color) p-4 peer-checked:border-current peer-checked:ring-2 peer-checked:ring-current peer-focus-visible:ring-2">
+            <% if category.icon_name.present? %>
+              <%= render FlatPack::Shared::IconComponent.new(name: category.icon_name, size: :lg) %>
+            <% end %>
+            <span class="min-w-0">
+              <span class="block font-semibold"><%= category.label %></span>
+              <% if category.description.present? %>
+                <span class="mt-1 block text-sm text-(--surface-muted-content-color)"><%= category.description %></span>
+              <% end %>
+            </span>
+          </span>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <%= render FlatPack::Button::Component.new(
+      text: creation.continue_label,
+      style: :primary,
+      type: "submit",
+      class: "mt-6 w-full"
+    ) %>
+  <% end %>
+</div>

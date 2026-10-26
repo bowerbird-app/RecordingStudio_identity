@@ -1,0 +1,21 @@
+<% recording_studio_page_nav(
+  title: identity_t("titles.add"),
+  page_nav_back_url: (@categories.one? ? recording_identities_path(@parent) : new_recording_identity_path(@parent)),
+  page_nav_back_label: identity_t("navigation.back")
+) %>
+
+<div class="flex w-full flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: identity_t("titles.add"),
+    subtitle: @category&.label
+  ) %>
+  <%= render "form",
+        record: @record,
+        category: @category,
+        url: recording_identities_path(@parent),
+        form_method: :post,
+        submit_text: identity_t("actions.save"),
+        cancel_url: recording_identities_path(@parent),
+        idempotency_key: @idempotency_key,
+        include_image: true %>
+</div>
