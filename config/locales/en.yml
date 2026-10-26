@@ -25,9 +25,6 @@ en:
         restore_aria: "Restore %{name}"
         view: "View"
         view_aria: "View %{name}"
-        change_image: "Change image"
-        upload_image: "Upload image"
-        remove_image: "Remove image"
       fields:
         name: "Name"
         description: "About"

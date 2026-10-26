@@ -43,7 +43,7 @@ module RecordingStudioIdentity
         @parent,
         actor: current_identity_actor,
         idempotency_key: string_param(:idempotency_key),
-        signed_blob_id: string_param(:image, :signed_blob_id),
+        signed_blob_id: submitted_image_blob_id,
         **identity_params
       )
       redirect_to identity_path(identity), notice: flash_was_added(identity), status: :see_other
@@ -71,8 +71,11 @@ module RecordingStudioIdentity
 
     def update
       identity = RecordingStudioIdentity.update(@identity, actor: current_identity_actor, **update_params)
-      blob_id = string_param(:image, :signed_blob_id)
-      RecordingStudioIdentity.set_image(identity, signed_blob_id: blob_id, actor: current_identity_actor) if blob_id
+      if (blob_id = submitted_image_blob_id)
+        RecordingStudioIdentity.set_image(identity, signed_blob_id: blob_id, actor: current_identity_actor)
+      elsif remove_submitted_image?
+        RecordingStudioIdentity.remove_image(identity, actor: current_identity_actor)
+      end
       redirect_to identity_path(identity), notice: flash_was_saved(identity), status: :see_other
     rescue Invalid => e
       @record = e.record
@@ -141,6 +144,29 @@ module RecordingStudioIdentity
       return if kind.blank?
 
       RecordingStudioIdentity.category(kind)
+    end
+
+    def submitted_image_blob_id
+      blob_id = string_param(:image, :signed_blob_id)
+      return if blob_id.blank?
+      return blob_id unless image_param.key?(:file)
+      return blob_id if uploaded_image_file?
+
+      nil
+    end
+
+    def remove_submitted_image?
+      string_param(:image, :remove) == "1" && submitted_image_blob_id.blank?
+    end
+
+    def uploaded_image_file?
+      file = image_param[:file]
+      file.respond_to?(:original_filename) && file.original_filename.present?
+    end
+
+    def image_param
+      image = params[:image]
+      image.is_a?(ActionController::Parameters) ? image : ActionController::Parameters.new
     end
 
     def identity_params

@@ -4,7 +4,7 @@ Recording Studio Identity `0.3.0` is the first identity release. It is strictly 
 
 ## Host install
 
-1. Add `recording_studio_identity` and keep Recording Studio `~> 4.2`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.213`.
+1. Add `recording_studio_identity` and keep Recording Studio `>= 4.7.1` and `< 5`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.320`. Recording Studio 4.7.0's default layout still passes the removed page-nav keywords, so 4.7.1 is the floor. Rebuild Tailwind after the FlatPack bump so the image input classes (`h-20`, `w-36`, the overlay scrim, and the avatar shape radii) are in the host CSS. The image input controller loads from the existing FlatPack controllers pin. FlatPack cards no longer take `style:`; use `background:`, `border:`, and `shadow:`.
 2. Run `bin/rails generate recording_studio_identity:install`.
 3. Run `bin/rails generate recording_studio_identity:migrations` and migrate. The identity table is `recording_studio_identities` (uuid id, `name`, `kind`, `description`, `website_url`, `created_at`). The migration is reversible.
 4. Install Active Storage and migrate before image upload. The image is an Attachable child recording, not a column on the identity.

@@ -1,5 +1,5 @@
 <%# locals: (title:, body:, href:) %>
-<%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+<%= render FlatPack::Card::Component.new(border: :default, shadow: :none) do |card| %>
   <% card.header do %>
     <%= render FlatPack::PageTitle::Component.new(title: title, variant: :h3, class: "mb-0 pb-0") %>
   <% end %>

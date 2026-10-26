@@ -3,6 +3,7 @@
 require "test_helper"
 require "devise/test/integration_helpers"
 require "stringio"
+require "base64"
 
 class IdentitiesFlowTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
@@ -61,10 +62,12 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Company name"
     refute_includes response.body, "About the company"
     refute_includes response.body, "Company logo"
-    assert_includes response.body, "Upload image"
     assert_includes response.body, "image[signed_blob_id]"
+    assert_includes response.body, "image[file]"
+    assert_includes response.body, "flat-pack--image-input"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
     assert_includes response.body, "attachment-revision-upload#fileSelected"
+    refute_includes response.body, "Upload image"
     assert_identity_form_order(response.body, removable: false)
   end
 
@@ -96,9 +99,10 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "About"
     refute_includes response.body, "Full name"
     refute_includes response.body, "Biography"
-    assert_includes response.body, "Change image"
     assert_includes response.body, "Remove image"
+    assert_includes response.body, "flat-pack--image-input"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
+    refute_includes response.body, "Change image"
     refute_includes response.body, "identity[kind]"
     assert_identity_form_order(response.body, removable: true)
 
@@ -107,6 +111,49 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     }
     assert_redirected_to recording_studio_identity.identity_path(identity)
     assert_equal identity.recordable_id, identity.reload.recordable_id
+  end
+
+  test "saving a cleared image removes it and an empty file does not replace it" do
+    identity = RecordingStudioIdentity.identity(@studio)
+    image = RecordingStudioIdentity.image(identity)
+    original_blob_id = image.recordable.file.blob.id
+    stale = png_blob
+
+    patch recording_studio_identity.identity_path(identity), params: {
+      identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
+      image: { signed_blob_id: stale.signed_id, file: "", remove: "0" }
+    }
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_equal original_blob_id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
+
+    patch recording_studio_identity.identity_path(identity), params: {
+      identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
+      image: { signed_blob_id: stale.signed_id, remove: "1", file: fixture_file("portrait.png") }
+    }
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_equal stale.id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
+
+    patch recording_studio_identity.identity_path(identity), params: {
+      identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
+      image: { signed_blob_id: "", remove: "1" }
+    }
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_nil RecordingStudioIdentity.image(identity.reload)
+  end
+
+  test "creating with an empty file ignores a leftover signed blob" do
+    blob = png_blob
+    assert_difference -> { RecordingStudioIdentity.identities(@agency).size }, 1 do
+      post recording_studio_identity.recording_identities_path(@agency), params: {
+        idempotency_key: SecureRandom.uuid,
+        identity: { kind: "brand", name: "Empty Frame", description: "", website_url: "" },
+        image: { signed_blob_id: blob.signed_id, file: "" }
+      }
+    end
+    assert_redirected_to %r{/identities/}
+
+    created = RecordingStudioIdentity.identities(@agency).find { |recording| recording.recordable.name == "Empty Frame" }
+    assert_nil RecordingStudioIdentity.image(created)
   end
 
   test "trash and restore keep the one slot" do
@@ -239,27 +286,57 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     form = document.css("form").find { |node| node.at_css("[name='identity[name]']") }
     refute_nil form
     assert_includes form["data-controller"].to_s, "recording-studio-attachable--attachment-revision-upload"
-    assert_nil form.at_css("[data-testid='identity-image-field'] form")
+    field = form.at_css("[data-testid='identity-image-field']")
+    refute_nil field
+    assert_nil field.at_css("form")
+    refute_nil field.at_css("[data-controller*='flat-pack--image-input']")
+    file_input = field.at_css("input[type='file'][name='image[file]']")
+    refute_nil file_input
+    assert_includes file_input["data-action"].to_s, "flat-pack--image-input#choose"
+    assert_includes file_input["data-action"].to_s, "attachment-revision-upload#fileSelected"
+    refute_nil field.at_css("[data-recording-studio-attachable--attachment-revision-upload-target='signedBlobInput']")
 
     fields = [
       form.at_css("[name='identity[name]']"),
       form.at_css("[name='identity[website_url]']"),
       form.at_css("[name='identity[description]']"),
-      form.at_css("[data-testid='identity-image-field']"),
+      field,
       form.css("button").find { |button| button.text.include?("Save") }
     ]
     assert fields.all?
     assert_equal fields, fields.sort
     refute_includes body, "You can add an image now or after the identity is saved."
+    assert_nil document.at_css("form#remove-identity-image")
 
+    clear = field.at_css("button[aria-label='Remove image']")
+    refute_nil clear
     if removable
-      refute_nil document.at_css("form#remove-identity-image")
-      assert_nil form.at_css("#remove-identity-image")
-      refute_nil form.at_css("[data-testid='identity-image-field'] button[form='remove-identity-image']")
+      remove = field.at_css("input[type='hidden'][name='image[remove]']")
+      refute_nil remove
+      assert_equal "0", remove["value"]
+      assert_nil clear["hidden"]
     else
-      assert_nil document.at_css("form#remove-identity-image")
-      assert_nil document.at_css("button[form='remove-identity-image']")
+      assert_nil field.at_css("input[name='image[remove]']")
+      assert clear["hidden"]
     end
+  end
+
+  def png_blob(filename = "portrait.png")
+    ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new(tiny_png), filename: filename, content_type: "image/png"
+    )
+  end
+
+  def fixture_file(filename)
+    path = Rails.root.join("tmp/#{filename}")
+    File.binwrite(path, tiny_png)
+    Rack::Test::UploadedFile.new(path.to_s, "image/png")
+  end
+
+  def tiny_png
+    @tiny_png ||= Base64.decode64(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    )
   end
 
   def load_seeds

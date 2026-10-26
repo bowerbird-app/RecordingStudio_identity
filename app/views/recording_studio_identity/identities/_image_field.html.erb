@@ -1,42 +1,27 @@
-<%# locals: (identity:, category:, removable: false) %>
+<%# locals: (identity:, category:) %>
 <% image = identity && RecordingStudioIdentity.image(identity) %>
 <% label = identity_field_label(category, :image) %>
-<% button_text = image ? t("recording_studio.identity.actions.change_image") : t("recording_studio.identity.actions.upload_image") %>
-
-<div class="flex flex-col gap-3" data-testid="identity-image-field">
-  <span class="text-sm font-medium"><%= label %></span>
-  <div class="flex flex-wrap items-center gap-4">
-    <% if identity %>
-      <%= recording_studio_identity_image(identity, size: :xl, shape: :circle) %>
-    <% end %>
-
-    <div class="inline-flex flex-col gap-2">
-      <%= hidden_field_tag "image[signed_blob_id]", "",
-            id: nil,
-            data: { recording_studio_attachable__attachment_revision_upload_target: "signedBlobInput" } %>
-      <input type="file"
-             class="hidden"
-             accept="<%= identity_image_accept %>"
-             aria-label="<%= label %>"
-             data-recording-studio-attachable--attachment-revision-upload-target="fileInput"
-             data-action="change->recording-studio-attachable--attachment-revision-upload#fileSelected">
-      <%= render FlatPack::Button::Component.new(
-        text: button_text,
-        style: :secondary,
-        type: "button",
-        data: { action: "recording-studio-attachable--attachment-revision-upload#browse" }
-      ) %>
-      <p class="hidden text-sm text-(--surface-muted-content-color)"
-         data-recording-studio-attachable--attachment-revision-upload-target="status"></p>
-    </div>
-
-    <% if removable %>
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.identity.actions.remove_image"),
-        style: :ghost,
-        type: "submit",
-        form: "remove-identity-image"
-      ) %>
-    <% end %>
-  </div>
-</div>
+<% display_name = image && RecordingStudioIdentity.display_name(identity) %>
+<% src = image && authorized_attachment_preview_path(image, :square_med) %>
+<% alt = display_name && t("recording_studio.identity.image.alt", name: display_name) %>
+<%= render FlatPack::ImageInput::Component.new(
+  name: "image[file]",
+  src: src,
+  alt: alt,
+  label: label,
+  shape: :circle,
+  size: :xl,
+  accept: identity_image_accept,
+  remove_name: (image ? "image[remove]" : nil),
+  input_attributes: {
+    data: {
+      recording_studio_attachable__attachment_revision_upload_target: "fileInput",
+      action: "change->recording-studio-attachable--attachment-revision-upload#fileSelected"
+    }
+  },
+  data: { testid: "identity-image-field" }
+) do %>
+  <%= hidden_field_tag "image[signed_blob_id]", "",
+        id: nil,
+        data: { recording_studio_attachable__attachment_revision_upload_target: "signedBlobInput" } %>
+<% end %>

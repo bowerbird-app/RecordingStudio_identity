@@ -14,7 +14,8 @@ class RecordingStudioIdentityTest < Minitest::Test
   def test_gemspec_pins_recording_studio_4_2
     gemspec = File.read(File.expand_path("../recording_studio_identity.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 4.7.1", "< 5"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.320"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -44,20 +45,23 @@ class RecordingStudioIdentityTest < Minitest::Test
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v4.7.1"'
+    refute_includes gemfile, 'tag: "v4.7.0"'
     refute_includes gemfile, 'tag: "v4.6.0"'
     refute_includes gemfile, 'tag: "v4.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.11.0", require: false'
-    refute_includes gemfile, 'tag: "v0.10.0"'
+    refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
     refute_includes gemfile, 'tag: "v0.17.0"'
     refute_includes gemfile, 'tag: "v0.10.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.9.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.10.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.3.1"'
+    refute_includes gemfile, 'tag: "v0.9.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.0"'
     refute_includes gemfile, 'tag: "v0.6.0"'
     refute_includes gemfile, 'tag: "v0.5.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.213"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.320"'
     refute_includes gemfile, 'tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v4.4.0"'
@@ -166,6 +170,7 @@ class RecordingStudioIdentityTest < Minitest::Test
 
     assert_includes tailwind_source, "../../../vendor/engines/flat_pack/app/components"
     assert_includes tailwind_source, "../../../vendor/engines/recording_studio/app/views"
+    assert_includes tailwind_source, "../../../vendor/engines/recording_studio_root_switchable/app/components"
     refute_includes tailwind_source, "vendor/bundle/**/flatpack/app/components"
     refute_includes tailwind_source, "recordingstudio-*"
     refute_includes tailwind_source, "@theme"
@@ -180,6 +185,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     rake_task = File.read(File.expand_path("dummy/lib/tasks/tailwindcss.rake", __dir__))
     assert_includes rake_task, "FlatPack::Engine.root"
     assert_includes rake_task, "RecordingStudio::Engine.root"
+    assert_includes rake_task, "RecordingStudioRootSwitchable::Engine.root"
     assert_includes rake_task, "tailwindcss:link_engine_sources"
   end
 

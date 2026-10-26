@@ -12,7 +12,7 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
 This version replaces the addon template with Recording Studio Identity. Hosts that mounted the template should mount `RecordingStudioIdentity::Engine` and delete the example capability. Install the identity migration and Active Storage before uploading images. Existing template page tables are not reused.
 
-Add and edit screens list name, website, description, then image. The sentence under the image control is gone. Edit saves a new image with the identity. Remove image still deletes immediately.
+Add and edit screens list name, website, description, then image. The image control is FlatPack's image input, which needs FlatPack `>= 0.1.320` and Recording Studio `>= 4.7.1` (the default layout that matches this page nav). Hosts that scan FlatPack for Tailwind need one CSS rebuild so the image input classes are present. Choosing a file still direct-uploads a signed blob, and Save stores it. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. FlatPack cards no longer take `style:`. A host that mounts root switchable with this FlatPack needs root switchable `0.10.0` and metrics `>= 0.3.1`, and a Tailwind source for that gem's components.
 
 Default field labels are Name, About, Image, and Website. A host `fields` map still replaces any of those labels.
 
@@ -20,7 +20,7 @@ Moving Recording Studio Company records onto identities is a separate migration.
 
 ### Changed
 
-- Add and edit forms show name, website, description, then image. The hint under the image control is gone. Edit saves a new image with the identity.
+- Add and edit forms show name, website, description, then FlatPack's image input. Choosing a file direct-uploads a signed blob that Save stores. Clearing a saved image and saving removes it.
 - Default and demo field labels are Name, About, Image, and Website.
 
 ### Added

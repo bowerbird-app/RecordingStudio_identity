@@ -139,7 +139,7 @@ Routes are mounted with the engine. The default path is `/recording_studio_ident
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same field order and the category labels. A new image is saved with the identity. Remove image deletes it immediately. Delete moves the identity to the trash.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same field order and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash.
 
 ## Display components
 
@@ -175,7 +175,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `~> 4.2`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.213`.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 4.7.1` and `< 5`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.320`. Recording Studio 4.7.1 is the layout that matches this FlatPack page nav.
 
 ```bash
 bin/rails generate recording_studio_identity:install

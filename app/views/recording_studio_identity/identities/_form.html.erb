@@ -1,6 +1,5 @@
 <%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, delete_url: nil, identity: nil, include_image: false) %>
 <% limits = RecordingStudioIdentity::Identity::LIMITS %>
-<% image = identity && RecordingStudioIdentity.image(identity) %>
 <%= form_with url: url,
       method: form_method,
       class: "flex max-w-2xl flex-col gap-4",
@@ -50,7 +49,7 @@
   ) %>
 
   <% if include_image %>
-    <%= render "image_field", identity: identity, category: category, removable: image.present? %>
+    <%= render "image_field", identity: identity, category: category %>
   <% end %>
 
   <div class="flex flex-wrap items-center gap-3">
@@ -75,10 +74,6 @@
       ) %>
     <% end %>
   </div>
-<% end %>
-<% if include_image && image %>
-  <%= form_with url: image_identity_path(identity), method: :delete, id: "remove-identity-image", class: "hidden" do %>
-  <% end %>
 <% end %>
 <% if delete_url %>
   <%= form_with url: delete_url, method: :delete, id: "delete-identity", class: "hidden" do %>
