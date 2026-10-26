@@ -57,6 +57,10 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Company name"
     assert_includes response.body, "About the company"
     assert_includes response.body, "Company logo"
+    assert_includes response.body, "Upload image"
+    assert_includes response.body, "image[signed_blob_id]"
+    assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
+    assert_includes response.body, "attachment-revision-upload#fileSelected"
   end
 
   test "creating from the details form shows the identity and omits empty fields" do
@@ -85,6 +89,9 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Full name"
     assert_includes response.body, "Biography"
+    assert_includes response.body, "Change image"
+    assert_includes response.body, "Remove image"
+    assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
     refute_includes response.body, "identity[kind]"
 
     patch recording_studio_identity.identity_path(identity), params: {

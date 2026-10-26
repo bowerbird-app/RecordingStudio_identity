@@ -60,6 +60,22 @@ module RecordingStudioIdentity
       Array(identity_image_upload_options[:allowed_content_types]).join(",")
     end
 
+    def identity_form_data(include_image:, unsaved_changes:)
+      upload = include_image ? identity_image_form_data(auto_submit: false) : {}
+      controllers = [("flat-pack--unsaved-changes" if unsaved_changes), upload.delete(:controller)].compact
+      actions = [upload.delete(:action)].compact
+      upload[:controller] = controllers.join(" ") if controllers.any?
+      upload[:action] = actions.join(" ") if actions.any?
+      upload
+    end
+
+    def identity_submit_data(include_image:, unsaved_changes:)
+      data = {}
+      data["flat-pack--unsaved-changes-target"] = "submit" if unsaved_changes
+      data[:recording_studio_attachable__attachment_revision_upload_target] = "submitButton" if include_image
+      data
+    end
+
     private
 
     def identity_image_upload_options

@@ -28,6 +28,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Step 1"
     assert_includes response.body, "recording_studio_identity:install"
     assert_includes response.body, "recording_studio_identity:migrations"
+    assert_includes response.body, "@rails/activestorage"
+    assert_includes response.body, "controllers/recording_studio_attachable"
     refute_includes response.body, template_placeholder
   end
 

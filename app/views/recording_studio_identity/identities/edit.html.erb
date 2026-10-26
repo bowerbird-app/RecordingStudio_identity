@@ -10,6 +10,8 @@
     title: t("recording_studio.identity.titles.edit"),
     subtitle: identity_category_label(@identity)
   ) %>
+  <%= render "image_field", identity: @identity, category: @category, standalone: true %>
+
   <%= render "form",
         record: @record,
         category: @category,
@@ -20,14 +22,4 @@
         cancel_url: identity_path(@identity),
         unsaved_changes: true,
         delete_url: identity_path(@identity) %>
-
-  <% if RecordingStudioIdentity.image(@identity) %>
-    <%= form_with url: image_identity_path(@identity), method: :delete, class: "inline-flex" do %>
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.identity.actions.remove_image"),
-        style: :ghost,
-        type: "submit"
-      ) %>
-    <% end %>
-  <% end %>
 </div>

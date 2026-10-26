@@ -2,6 +2,8 @@
 # development, test). The code here should be idempotent so that it can be executed at any point in every environment.
 # The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
 
+require "zlib"
+
 find_or_record_child = lambda do |recordable, root_recording, parent_recording|
   RecordingStudio::Recording.where(RecordingStudio::Recording.recording_studio_trashable_kept_sql).find_by(
     root_recording: root_recording,
@@ -13,6 +15,24 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
     root_recording: root_recording,
     parent_recording: parent_recording
   ).recording
+end
+
+placeholder_image_png = lambda do
+  size = 64
+  center = (size - 1) / 2.0
+  radius = size * 0.32
+  rows = Array.new(size) do |y|
+    pixels = Array.new(size) do |x|
+      ((x - center)**2) + ((y - center)**2) <= radius**2 ? "\xF0\x5A\x28\xFF".b : "\x11\x11\x11\xFF".b
+    end
+    "\x00".b + pixels.join.b
+  end
+  chunk = ->(type, data) { [data.bytesize].pack("N") + type + data + [Zlib.crc32(type + data)].pack("N") }
+
+  "\x89PNG\r\n\x1A\n".b +
+    chunk.call("IHDR".b, [size, size, 8, 6, 0, 0, 0].pack("N2C5")) +
+    chunk.call("IDAT".b, Zlib::Deflate.deflate(rows.join.b)) +
+    chunk.call("IEND".b, "".b)
 end
 
 # Create the admin user
@@ -61,13 +81,21 @@ begin
     RecordingStudioIdentity.create(parent, actor: user, kind: kind, name: name, **fields)
   end
 
-  ensure_identity.call(
+  sarah = ensure_identity.call(
     root_recording,
     kind: "person",
     name: "Sarah Jones",
     description: "Photographer and creator",
     website_url: "https://example.com"
   )
+  if RecordingStudioIdentity.image(sarah).nil?
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new(placeholder_image_png.call),
+      filename: "sarah-jones.png",
+      content_type: "image/png"
+    )
+    RecordingStudioIdentity.set_image(sarah, signed_blob_id: blob.signed_id, actor: user)
+  end
   ensure_identity.call(agency_recording, kind: "company", name: "Northwind", description: "An independent agency")
   ensure_identity.call(agency_recording, kind: "brand", name: "Dove")
   ensure_identity.call(project_recording, kind: "organisation", name: "Harbour Trust")

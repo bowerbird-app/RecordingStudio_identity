@@ -1,7 +1,9 @@
-<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, delete_url: nil, identity: nil) %>
+<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, delete_url: nil, identity: nil, include_image: false) %>
 <% limits = RecordingStudioIdentity::Identity::LIMITS %>
-<% form_data = unsaved_changes ? { controller: "flat-pack--unsaved-changes" } : {} %>
-<%= form_with url: url, method: form_method, class: "flex max-w-2xl flex-col gap-4", data: form_data do %>
+<%= form_with url: url,
+      method: form_method,
+      class: "flex max-w-2xl flex-col gap-4",
+      data: identity_form_data(include_image: include_image, unsaved_changes: unsaved_changes) do %>
   <% if idempotency_key %>
     <%= hidden_field_tag :idempotency_key, idempotency_key, id: nil %>
   <% end %>
@@ -19,7 +21,9 @@
     ) %>
   <% end %>
 
-  <%= render "image_field", identity: identity, category: category %>
+  <% if include_image %>
+    <%= render "image_field", identity: identity, category: category %>
+  <% end %>
 
   <%= render FlatPack::TextInput::Component.new(
     name: "identity[name]",
@@ -49,16 +53,12 @@
   ) %>
 
   <div class="flex flex-wrap items-center gap-3">
-    <% if unsaved_changes %>
-      <%= render FlatPack::Button::Component.new(
-        text: submit_text,
-        style: :default,
-        type: "submit",
-        data: { "flat-pack--unsaved-changes-target": "submit" }
-      ) %>
-    <% else %>
-      <%= render FlatPack::Button::Component.new(text: submit_text, style: :primary, type: "submit") %>
-    <% end %>
+    <%= render FlatPack::Button::Component.new(
+      text: submit_text,
+      style: unsaved_changes ? :default : :primary,
+      type: "submit",
+      data: identity_submit_data(include_image: include_image, unsaved_changes: unsaved_changes)
+    ) %>
     <%= render FlatPack::Button::Component.new(
       text: t("recording_studio.identity.actions.cancel"),
       style: :ghost,

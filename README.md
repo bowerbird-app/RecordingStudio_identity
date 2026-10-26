@@ -187,6 +187,16 @@ bin/rails db:migrate
 
 `recording_studio_identity:install` mounts the engine, adds an initializer, and adds Tailwind sources for the engine and FlatPack. Copy the identity migration into the host. Active Storage tables are required before an image can be uploaded.
 
+Image upload uses Attachable's direct-upload controller. Pin it in the host `config/importmap.rb`:
+
+```ruby
+pin "@rails/activestorage", to: "activestorage.esm.js"
+pin_all_from RecordingStudioAttachable::Engine.root.join("app/javascript/controllers/recording_studio_attachable"),
+  under: "controllers/recording_studio_attachable",
+  to: "controllers/recording_studio_attachable",
+  preload: false
+```
+
 Enable the capability on each parent model, root or not.
 
 ```ruby

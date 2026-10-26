@@ -15,9 +15,26 @@
   <%= render FlatPack::CodeBlock::Component.new(
     language: :bash,
     code: <<~CODE
+      bin/rails generate recording_studio_attachable:install
       bin/rails generate recording_studio_identity:install
       bin/rails generate recording_studio_identity:migrations
       bin/rails db:migrate
+    CODE
+  ) %>
+
+  <%= render FlatPack::SectionTitle::Component.new(
+    title: "Direct upload",
+    subtitle: "Pin Active Storage and the Attachable Stimulus controllers in config/importmap.rb.",
+  ) %>
+
+  <%= render FlatPack::CodeBlock::Component.new(
+    language: :ruby,
+    code: <<~CODE
+      pin "@rails/activestorage", to: "activestorage.esm.js"
+      pin_all_from RecordingStudioAttachable::Engine.root.join("app/javascript/controllers/recording_studio_attachable"),
+        under: "controllers/recording_studio_attachable",
+        to: "controllers/recording_studio_attachable",
+        preload: false
     CODE
   ) %>
 </div>
