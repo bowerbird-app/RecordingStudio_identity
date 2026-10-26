@@ -12,7 +12,13 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
 This version replaces the addon template with Recording Studio Identity. Hosts that mounted the template should mount `RecordingStudioIdentity::Engine` and delete the example capability. Install the identity migration and Active Storage before uploading images. Existing template page tables are not reused.
 
+Add and edit screens list name, website, description, then image. The sentence under the image control is gone. Edit saves a new image with the identity. Remove image still deletes immediately.
+
 Moving Recording Studio Company records onto identities is a separate migration. It is not run by this release. It has to copy recording references, revision history, images, and parent relationships, and Press Kits has to be pointed at the new recordings.
+
+### Changed
+
+- Add and edit forms show name, website, description, then image. The hint under the image control is gone. Edit saves a new image with the identity.
 
 ### Added
 

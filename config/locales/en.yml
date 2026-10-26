@@ -56,8 +56,6 @@ en:
         stays_off: "Adding an identity stays off until the extra identities are moved or purged."
       form:
         save_failed_title: "The identity could not be saved"
-      new:
-        image_hint: "You can add an image now or after the identity is saved."
       image:
         alt: "%{name} image"
       flashes:

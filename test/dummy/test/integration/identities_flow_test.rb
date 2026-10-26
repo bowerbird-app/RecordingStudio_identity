@@ -61,6 +61,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "image[signed_blob_id]"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
     assert_includes response.body, "attachment-revision-upload#fileSelected"
+    assert_identity_form_order(response.body, removable: false)
   end
 
   test "creating from the details form shows the identity and omits empty fields" do
@@ -93,6 +94,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Remove image"
     assert_includes response.body, "recording-studio-attachable--attachment-revision-upload"
     refute_includes response.body, "identity[kind]"
+    assert_identity_form_order(response.body, removable: true)
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer and creator", website_url: "https://example.com" }
@@ -224,6 +226,34 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_equal "Getting Started", helpers.identity_recording_name(page)
     assert_equal "Name", helpers.identity_field_label(nil, :name)
     assert_equal page.id, helpers.identity_recording_name(RecordingStudio::Recording.new(id: page.id))
+  end
+
+  def assert_identity_form_order(body, removable:)
+    document = Nokogiri::HTML(body)
+    form = document.css("form").find { |node| node.at_css("[name='identity[name]']") }
+    refute_nil form
+    assert_includes form["data-controller"].to_s, "recording-studio-attachable--attachment-revision-upload"
+    assert_nil form.at_css("[data-testid='identity-image-field'] form")
+
+    fields = [
+      form.at_css("[name='identity[name]']"),
+      form.at_css("[name='identity[website_url]']"),
+      form.at_css("[name='identity[description]']"),
+      form.at_css("[data-testid='identity-image-field']"),
+      form.css("button").find { |button| button.text.include?("Save") }
+    ]
+    assert fields.all?
+    assert_equal fields, fields.sort
+    refute_includes body, "You can add an image now or after the identity is saved."
+
+    if removable
+      refute_nil document.at_css("form#remove-identity-image")
+      assert_nil form.at_css("#remove-identity-image")
+      refute_nil form.at_css("[data-testid='identity-image-field'] button[form='remove-identity-image']")
+    else
+      assert_nil document.at_css("form#remove-identity-image")
+      assert_nil document.at_css("button[form='remove-identity-image']")
+    end
   end
 
   def load_seeds

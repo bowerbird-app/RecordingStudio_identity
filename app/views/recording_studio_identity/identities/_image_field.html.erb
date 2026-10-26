@@ -1,29 +1,7 @@
-<%# locals: (identity:, category:, standalone: false) %>
+<%# locals: (identity:, category:, removable: false) %>
 <% image = identity && RecordingStudioIdentity.image(identity) %>
 <% label = identity_field_label(category, :image) %>
 <% button_text = image ? t("recording_studio.identity.actions.change_image") : t("recording_studio.identity.actions.upload_image") %>
-<% controls = capture do %>
-  <%= hidden_field_tag "image[signed_blob_id]", "",
-        id: nil,
-        data: { recording_studio_attachable__attachment_revision_upload_target: "signedBlobInput" } %>
-  <input type="file"
-         class="hidden"
-         accept="<%= identity_image_accept %>"
-         aria-label="<%= label %>"
-         data-recording-studio-attachable--attachment-revision-upload-target="fileInput"
-         data-action="change->recording-studio-attachable--attachment-revision-upload#fileSelected">
-  <%= render FlatPack::Button::Component.new(
-    text: button_text,
-    style: :secondary,
-    type: "button",
-    data: { action: "recording-studio-attachable--attachment-revision-upload#browse" }
-  ) %>
-  <p class="hidden text-sm text-(--surface-muted-content-color)"
-     data-recording-studio-attachable--attachment-revision-upload-target="status"></p>
-  <% unless standalone %>
-    <p class="text-sm text-(--surface-muted-content-color)"><%= t("recording_studio.identity.new.image_hint") %></p>
-  <% end %>
-<% end %>
 
 <div class="flex flex-col gap-3" data-testid="identity-image-field">
   <span class="text-sm font-medium"><%= label %></span>
@@ -32,27 +10,33 @@
       <%= recording_studio_identity_image(identity, size: :xl, shape: :circle) %>
     <% end %>
 
-    <% if standalone %>
-      <%= form_with url: image_identity_path(identity),
-            method: :patch,
-            class: "inline-flex flex-col gap-2",
-            data: identity_image_form_data(auto_submit: true) do %>
-        <%= controls %>
-      <% end %>
+    <div class="inline-flex flex-col gap-2">
+      <%= hidden_field_tag "image[signed_blob_id]", "",
+            id: nil,
+            data: { recording_studio_attachable__attachment_revision_upload_target: "signedBlobInput" } %>
+      <input type="file"
+             class="hidden"
+             accept="<%= identity_image_accept %>"
+             aria-label="<%= label %>"
+             data-recording-studio-attachable--attachment-revision-upload-target="fileInput"
+             data-action="change->recording-studio-attachable--attachment-revision-upload#fileSelected">
+      <%= render FlatPack::Button::Component.new(
+        text: button_text,
+        style: :secondary,
+        type: "button",
+        data: { action: "recording-studio-attachable--attachment-revision-upload#browse" }
+      ) %>
+      <p class="hidden text-sm text-(--surface-muted-content-color)"
+         data-recording-studio-attachable--attachment-revision-upload-target="status"></p>
+    </div>
 
-      <% if image %>
-        <%= form_with url: image_identity_path(identity), method: :delete, class: "inline-flex" do %>
-          <%= render FlatPack::Button::Component.new(
-            text: t("recording_studio.identity.actions.remove_image"),
-            style: :ghost,
-            type: "submit"
-          ) %>
-        <% end %>
-      <% end %>
-    <% else %>
-      <div class="inline-flex flex-col gap-2">
-        <%= controls %>
-      </div>
+    <% if removable %>
+      <%= render FlatPack::Button::Component.new(
+        text: t("recording_studio.identity.actions.remove_image"),
+        style: :ghost,
+        type: "submit",
+        form: "remove-identity-image"
+      ) %>
     <% end %>
   </div>
 </div>

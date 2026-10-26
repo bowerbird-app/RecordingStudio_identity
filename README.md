@@ -135,11 +135,11 @@ Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentF
 Routes are mounted with the engine. The default path is `/recording_studio_identity`.
 
 1. Category screen. Each configured category is a card with icon, label, and description. The heading, description, and continue label come from `config.creation`. Nothing is recorded on this step.
-2. Details screen. Labels come from that category (`name`, `description`, `image`, `website_url`).
+2. Details screen. The fields are name, website, description, then image. Labels come from that category.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the category labels. Delete moves the identity to the trash.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same field order and the category labels. A new image is saved with the identity. Remove image deletes it immediately. Delete moves the identity to the trash.
 
 ## Display components
 

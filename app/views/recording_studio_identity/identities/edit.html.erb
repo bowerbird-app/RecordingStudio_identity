@@ -10,8 +10,6 @@
     title: t("recording_studio.identity.titles.edit"),
     subtitle: identity_category_label(@identity)
   ) %>
-  <%= render "image_field", identity: @identity, category: @category, standalone: true %>
-
   <%= render "form",
         record: @record,
         category: @category,
@@ -21,5 +19,6 @@
         submit_text: t("recording_studio.identity.actions.save"),
         cancel_url: identity_path(@identity),
         unsaved_changes: true,
-        delete_url: identity_path(@identity) %>
+        delete_url: identity_path(@identity),
+        include_image: true %>
 </div>
