@@ -26,18 +26,19 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: "Install"
     assert_includes response.body, "Step 1"
-    assert_includes response.body, "Provide one section title for each step"
-    assert_includes response.body, "# Put the step instruction here."
+    assert_includes response.body, "recording_studio_identity:install"
+    assert_includes response.body, "recording_studio_identity:migrations"
+    refute_includes response.body, template_placeholder
   end
 
   test "config page renders successfully" do
     get docs_config_path
     assert_response :success
     assert_select "h1", text: "Config"
-    expected_placeholder = "Replace this placeholder with the configuration settings your generated gem exposes."
-
-    assert_includes response.body, expected_placeholder
-    assert_includes response.body, "# Add the config settings for the gem here."
+    assert_includes response.body, "RecordingStudioIdentity.configure"
+    assert_includes response.body, "config.types"
+    assert_includes response.body, "config.creation"
+    refute_includes response.body, template_placeholder
   end
 
   test "recordable types page renders configured recordables dynamically" do
@@ -78,6 +79,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     folder_recording = record_child(folder, root_recording, root_recording)
     page = Page.create!(title: "API")
     record_child(page, root_recording, folder_recording)
+    grant = RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: @user)
+    assert_not grant.failure?, grant.error.to_s
+    assert RecordingStudio::Recording.exists?(recordable_type: "RecordingStudio::Access")
 
     get docs_recordings_tree_path
 
@@ -106,11 +110,10 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     get docs_methods_path
     assert_response :success
     assert_select "h1", text: "Methods"
-    assert_includes response.body, "Document the public methods your addon exposes."
-    assert_includes response.body, "Example method"
-    assert_includes response.body, "recordingstudio_addon.example_method"
-    assert_includes response.body, "# Explain what this method does before the example."
-    assert_includes response.body, "Provide one section title and codeblock for each method"
+    assert_includes response.body, "RecordingStudioIdentity.create"
+    assert_includes response.body, "RecordingStudioIdentity.identities"
+    refute_includes response.body, addon_placeholder
+    refute_includes response.body, "example_method"
   end
 
   test "authenticated docs pages use the recording studio default layout" do
@@ -123,6 +126,14 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def template_placeholder
+    %w[Gem Template].join
+  end
+
+  def addon_placeholder
+    %w[Recordingstudio Addon].join
+  end
 
   def create_recordable_type_summary_data
     workspace_recordings_before = RecordingStudio::Recording.where(recordable_type: "Workspace").count

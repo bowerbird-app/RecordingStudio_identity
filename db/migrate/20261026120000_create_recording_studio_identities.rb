@@ -8,6 +8,8 @@ class CreateRecordingStudioIdentities < ActiveRecord::Migration[8.1]
       t.text :description
       t.string :website_url
       t.datetime :created_at, null: false
+
+      t.index :kind, name: "index_recording_studio_identities_on_kind"
     end
   end
 end

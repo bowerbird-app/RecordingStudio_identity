@@ -3,19 +3,21 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Install",
-    subtitle: "Host-app setup for the mounted GemTemplate engine and its sample migrations.",
+    subtitle: "Add RecordingStudioIdentity to a host app and declare which parents can hold identities.",
     variant: :h1
   ) %>
 
   <%= render FlatPack::SectionTitle::Component.new(
     title: "Step 1",
-    subtitle: "Provide one section title for each step",
+    subtitle: "Add the gem, mount the engine, and copy the identities migration.",
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :bash,
     code: <<~CODE
-      # Put the step instruction here.
+      bin/rails generate recording_studio_identity:install
+      bin/rails generate recording_studio_identity:migrations
+      bin/rails db:migrate
     CODE
   ) %>
 </div>

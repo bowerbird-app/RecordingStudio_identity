@@ -201,42 +201,25 @@ class RecordingStudioIdentityTest < Minitest::Test
     readme_path = File.expand_path("dummy/README.md", __dir__)
     readme_source = File.read(readme_path)
 
-    assert_includes readme_source, "This Rails app exists to validate the Recording Studio addon template"
+    assert_includes readme_source, "This Rails app hosts RecordingStudioIdentity"
     assert_includes readme_source, "/recording_studio"
     assert_includes readme_source, "redirects to `/`"
     refute_includes readme_source, "flat_pack_sidebar"
   end
 
-  def test_product_readme_is_the_template_guide
+  def test_product_readme_documents_identities
     readme = File.read(File.expand_path("../README.md", __dir__))
 
-    assert_includes readme, "RecordingStudio"
-    assert_includes readme, "dummy GitHub tag `v4.7.0`"
-    refute_includes readme, "dummy GitHub tag `v4.6.0`"
-    refute_includes readme, "dummy GitHub tag `v4.5.0`"
-    assert_includes readme, "dummy GitHub tag `v0.1.213`"
-    refute_includes readme, "dummy GitHub tag `v0.1.196`"
-    assert_includes readme, "dummy GitHub tag `v0.18.0`"
-    assert_includes readme, "dummy GitHub tag `v0.11.0`"
-    assert_includes readme, "dummy GitHub tag `v0.15.0`"
-    refute_includes readme, "dummy GitHub tag `v0.10.0`"
-    refute_includes readme, "dummy GitHub tag `v0.17.0`"
-    refute_includes readme, "dummy GitHub tag `v0.10.1`"
-    assert_includes readme, "dummy GitHub tag `v0.9.0`"
-    refute_includes readme, "dummy GitHub tag `v0.8.0`"
-    refute_includes readme, "dummy GitHub tag `v0.6.0`"
-    refute_includes readme, "dummy GitHub tag `v0.5.1`"
-    refute_includes readme, "dummy GitHub tag `v4.4.0`"
-    refute_includes readme, "dummy GitHub tag `v4.3.0`"
-    refute_includes readme, "dummy GitHub tag `v4.2.2`"
-    refute_includes readme, "dummy GitHub tag `v4.2.1`"
-    refute_includes readme, "dummy GitHub tag `v4.2.0`"
-    refute_includes readme, "v0.1.177"
-    refute_includes readme, "v0.9.1"
-    refute_includes readme, "v0.1.133"
+    assert_includes readme, "RecordingStudioIdentity"
+    assert_includes readme, "RecordingStudioIdentity.configure"
+    assert_includes readme, "allow: :one"
+    assert_includes readme, "RecordingStudioIdentity.create"
+    refute_includes readme, %w[Gem Template].join
+    refute_includes readme, %w[Recordingstudio Addon].join
+    refute_includes readme, "dummy GitHub tag"
+    refute_includes readme, "ExampleService"
     refute_includes readme, "v3 declarations"
     refute_includes readme, "RecordingStudio v3"
-    refute_includes readme, "ExampleService"
     refute_includes readme, "recording_studio/v3.0.0"
   end
 

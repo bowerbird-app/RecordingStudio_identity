@@ -207,8 +207,6 @@ The dummy app at `test/dummy` signs in with `admin@admin.com` / `Password`.
 - Project `Harbour fit-out` sits under the studio workspace and holds its own identities.
 - The agency create screen uses the configured title, description, continue label, and category field labels.
 
-Dummy pins, written so the suite can see them: dummy GitHub tag `v4.7.0` for Recording Studio, dummy GitHub tag `v0.1.213` for FlatPack, dummy GitHub tag `v0.18.0` for Accessible, dummy GitHub tag `v0.15.0` for Attachable, dummy GitHub tag `v0.11.0` for Trashable, dummy GitHub tag `v0.9.0` for root switchable, and dummy GitHub tag `v0.5.0` for cache. Metrics stays on dummy GitHub tag `v0.2.0`.
-
 ## Tests
 
 ```bash

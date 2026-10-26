@@ -169,6 +169,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_26_120200) do
     t.text "description"
     t.string "website_url"
     t.datetime "created_at", null: false
+    t.index ["kind"], name: "index_recording_studio_identities_on_kind"
   end
 
   create_table "recording_studio_recordings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -3,14 +3,29 @@
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Replace this placeholder with the configuration settings your generated gem exposes.",
+    subtitle: "Category labels and the creation screen come from RecordingStudioIdentity.configure.",
     variant: :h1
   ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,
     code: <<~'CODE'
-      # Add the config settings for the gem here.
+      RecordingStudioIdentity.configure do |config|
+        config.types = {
+          person: {
+            label: "Person",
+            description: "Creators, influencers and individuals",
+            icon: "user",
+            fields: { name: "Full name", description: "Biography", image: "Profile photo" }
+          }
+        }
+
+        config.creation = {
+          title: "What would you like to represent?",
+          description: "Choose the type of identity you'd like to create.",
+          continue_label: "Continue"
+        }
+      end
     CODE
   ) %>
 </div>

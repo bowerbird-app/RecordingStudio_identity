@@ -312,15 +312,22 @@ class IdentitiesConcurrencyTest < ActiveSupport::TestCase
 end
 
 class IdentitiesMigrationTest < ActiveSupport::TestCase
-  test "identities migration drops and recreates the table" do
+  test "identities migration creates the kind index and drops the table" do
     require Rails.root.join("db/migrate/20261026120000_create_recording_studio_identities.rb").to_s
 
+    connection = ActiveRecord::Base.connection
     ActiveRecord::Migration.suppress_messages do
       CreateRecordingStudioIdentities.migrate(:down)
-      assert_not ActiveRecord::Base.connection.table_exists?(:recording_studio_identities)
+      assert_not connection.table_exists?(:recording_studio_identities)
       CreateRecordingStudioIdentities.migrate(:up)
     end
     RecordingStudioIdentity::Identity.reset_column_information
-    assert ActiveRecord::Base.connection.column_exists?(:recording_studio_identities, :kind)
+    assert connection.table_exists?(:recording_studio_identities)
+    assert connection.column_exists?(:recording_studio_identities, :kind)
+    assert connection.index_exists?(
+      :recording_studio_identities,
+      :kind,
+      name: "index_recording_studio_identities_on_kind"
+    )
   end
 end
