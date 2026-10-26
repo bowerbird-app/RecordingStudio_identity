@@ -34,7 +34,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Northwind"
     assert_includes response.body, "Dove"
     assert_includes response.body, "Press profiles"
-    assert_includes response.body, "+ Press profile"
+    assert_page_nav_add_action(response.body)
     refute_includes response.body, "+ Identity"
 
     get recording_studio_identity.recording_identities_path(@studio)
@@ -50,8 +50,10 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Who is this press profile for?"
-    assert_includes response.body, "Choose the type of press profile you&#39;d like to create."
+    refute_includes response.body, "Choose the type of press profile you'd like to create."
+    refute_includes response.body, "Choose the type of press profile you&#39;d like to create."
     assert_includes response.body, "Continue"
+    assert_continue_spans_the_form(response.body)
     assert_includes response.body, "Company"
     refute_includes response.body, "Company name"
 
@@ -184,7 +186,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Harbour Trust"
-    assert_includes response.body, "+ Press profile"
+    assert_page_nav_add_action(response.body)
   end
 
   test "zero categories render a configuration error and one category skips the chooser" do
@@ -284,6 +286,31 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_equal "Getting Started", helpers.identity_recording_name(page)
     assert_equal "Name", helpers.identity_field_label(nil, :name)
     assert_equal page.id, helpers.identity_recording_name(RecordingStudio::Recording.new(id: page.id))
+  end
+
+  def assert_page_nav_add_action(body)
+    document = Nokogiri::HTML(body)
+    nav = document.at_css("nav.flat-pack-page-nav")
+    refute_nil nav
+    action = nav.css("a").find { |node| node.text.include?("+ Press profile") }
+    refute_nil action
+    assert_equal "default", action["data-fp-style"]
+    assert_empty action.xpath("ancestor::h1")
+    assert_empty action.xpath("preceding::h1")
+    heading = document.at_css("h1")
+    refute_nil heading
+    assert_nil heading.parent.css("a").find { |node| node.text.include?("+ Press profile") }
+  end
+
+  def assert_continue_spans_the_form(body)
+    document = Nokogiri::HTML(body)
+    form = document.at_css("form")
+    refute_nil form
+    button = form.at_css("button[type='submit']")
+    refute_nil button
+    assert_includes button["class"], "mt-6"
+    assert_includes button["class"], "w-full"
+    assert_equal "Continue", button.text.squish
   end
 
   def assert_identity_form_order(body, removable:)

@@ -9,7 +9,7 @@ Recording Studio Identity `0.3.0` is the first identity release. It is strictly 
 3. Run `bin/rails generate recording_studio_identity:migrations` and migrate. The identity table is `recording_studio_identities` (uuid id, `name`, `kind`, `description`, `website_url`, `created_at`). The migration is reversible.
 4. Install Active Storage and migrate before image upload. The image is an Attachable child recording, not a column on the identity.
 5. Include `RecordingStudio::Capabilities::Identities.to(allow: :one)` or `allow: :many` on each parent. `allow:` is mandatory.
-6. Configure `config.types` and `config.creation` if the defaults are not the ones you want. Set `config.label` and `config.plural_label` together when the screens should say something other than Identity and Identities. The add and edit form places the image in the first column from the `md` breakpoint.
+6. Configure `config.types` and `config.creation` if the defaults are not the ones you want. Set `config.label` and `config.plural_label` together when the screens should say something other than Identity and Identities. The category screen shows the creation title and continue label. It does not render `creation.description`. The index add button sits in the page-nav right slot. The add and edit form places the image in the first column from the `md` breakpoint.
 
 The engine registers the identity recordable. Do not add a `workspace_id` or `owner_id`. Store `RecordingStudio::Recording` ids.
 

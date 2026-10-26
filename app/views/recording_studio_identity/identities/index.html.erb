@@ -6,19 +6,18 @@
   page_nav_back_url: home_path,
   page_nav_back_label: (home_path && identity_t("navigation.home"))
 ) %>
+<% if identity_can?(:create, @parent) %>
+  <% recording_studio_page_nav_right do %>
+    <%= render FlatPack::Button::Component.new(
+      text: identity_t("actions.add_identity_plus"),
+      style: :default,
+      href: new_recording_identity_path(@parent)
+    ) %>
+  <% end %>
+<% end %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(title: heading) do |page_title| %>
-    <% if identity_can?(:create, @parent) %>
-      <% page_title.slot do %>
-        <%= render FlatPack::Button::Component.new(
-          text: identity_t("actions.add_identity_plus"),
-          style: :primary,
-          href: new_recording_identity_path(@parent)
-        ) %>
-      <% end %>
-    <% end %>
-  <% end %>
+  <%= render FlatPack::PageTitle::Component.new(title: heading) %>
 
   <% if many %>
     <%= render "list", parent: @parent, identities: @identities, trashed_identities: @trashed_identities %>

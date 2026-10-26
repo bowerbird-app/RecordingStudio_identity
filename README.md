@@ -82,7 +82,7 @@ Icons accept the Heroicon names used by FlatPack. `user-round`, `building-2`, an
 
 When `config.types` is omitted, the gem uses person, company, brand, and organisation. There is no Featured In default.
 
-`config.creation` supplies the category screen title, description, and continue label. Blank values fall back to `config/locales/en.yml`. Set `description` to a blank string to omit it.
+`config.creation` still accepts a title, description, and continue label. Blank values fall back to `config/locales/en.yml`. Set `description` to a blank string and the config object omits it. The category screen shows the title and the continue label. It does not render the description.
 
 ## Public Ruby API
 
@@ -139,12 +139,12 @@ Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentF
 
 Routes are mounted with the engine. The default path is `/recording_studio_identity`.
 
-1. Category screen. Each configured category is a card with icon, label, and description. The heading, description, and continue label come from `config.creation`. Nothing is recorded on this step.
+1. Category screen. Each configured category is a card with icon, label, and description. The heading and continue label come from `config.creation`. The screen does not show `creation.description`. Continue is full width, with space above it. Nothing is recorded on this step.
 2. Details screen. From the `md` breakpoint the form is two columns. The image is the first column. Name, website, and about are the second. On a narrow screen the image sits above those fields. Labels come from that category. Save and Cancel sit under the columns.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same two-column layout and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same two-column layout and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
 
 ## Display components
 
@@ -220,7 +220,7 @@ The dummy app at `test/dummy` signs in with `admin@admin.com` / `Password`.
 - Workspace `Studio Workspace` holds one identity.
 - Agency `Harbour Agency` holds many identities.
 - Project `Harbour fit-out` sits under the studio workspace and holds its own identities.
-- The agency create screen uses the configured title, description, continue label, and category field labels.
+- The agency create screen uses the configured title and continue label, and the category field labels. `creation.description` stays on the config object and is not shown on that screen.
 
 ## Tests
 

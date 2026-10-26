@@ -6,7 +6,7 @@
 ) %>
 
 <div class="flex w-full max-w-3xl flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(title: creation.title, subtitle: creation.description) %>
+  <%= render FlatPack::PageTitle::Component.new(title: creation.title) %>
 
   <% if @unknown_kind %>
     <%= render FlatPack::Alert::Component.new(
@@ -37,6 +37,11 @@
       <% end %>
     </fieldset>
 
-    <%= render FlatPack::Button::Component.new(text: creation.continue_label, style: :primary, type: "submit") %>
+    <%= render FlatPack::Button::Component.new(
+      text: creation.continue_label,
+      style: :primary,
+      type: "submit",
+      class: "mt-6 w-full"
+    ) %>
   <% end %>
 </div>

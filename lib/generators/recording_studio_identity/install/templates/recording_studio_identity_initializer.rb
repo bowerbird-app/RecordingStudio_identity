@@ -15,6 +15,7 @@ RecordingStudioIdentity.configure do |config|
   #
   # config.creation = {
   #   title: "What would you like to represent?",
+  #   # Kept on the config object. The category screen does not render it.
   #   description: "Choose the type of identity you'd like to create.",
   #   continue_label: "Continue"
   # }
