@@ -49,6 +49,9 @@ Shared roots cannot hold identities. The write path locks the root recording and
 
 ```ruby
 RecordingStudioIdentity.configure do |config|
+  config.label = "Press profile"
+  config.plural_label = "Press profiles"
+
   config.types = {
     person: {
       label: "Person",
@@ -64,12 +67,14 @@ RecordingStudioIdentity.configure do |config|
   }
 
   config.creation = {
-    title: "What would you like to represent?",
-    description: "Choose the type of identity you'd like to create.",
+    title: "Who is this press profile for?",
+    description: "Choose the type of press profile you'd like to create.",
     continue_label: "Continue"
   }
 end
 ```
+
+`config.label` and `config.plural_label` are the singular and plural names on screen. Headings, buttons, empty states, flashes, and trash and restore copy use them. Leave both unset to keep Identity and Identities. Those defaults come from `config/locales/en.yml`, so a locale can rename them too. Set both together. `label` is the heading form (`Press profile`, `+ Press profile`). Sentences lowercase the first letter (`Add press profile`, `No press profiles yet`). A word that starts with a, e, i, o, or u takes "an". Any other word takes "a".
 
 `config.types` is a map of category key to label, description, icon, and field labels. Keys are normalized to lowercase. Duplicate normalized keys are rejected. Unknown options and unknown field names are rejected. Field labels change presentation only. Every category uses the same model. The default labels are Name, About, Image, and Website. Set `fields` to replace any of them.
 
@@ -135,11 +140,11 @@ Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentF
 Routes are mounted with the engine. The default path is `/recording_studio_identity`.
 
 1. Category screen. Each configured category is a card with icon, label, and description. The heading, description, and continue label come from `config.creation`. Nothing is recorded on this step.
-2. Details screen. The fields are name, website, description, then image. Labels come from that category.
+2. Details screen. From the `md` breakpoint the form is two columns. The image is the first column. Name, website, and about are the second. On a narrow screen the image sits above those fields. Labels come from that category. Save and Cancel sit under the columns.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same field order and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same two-column layout and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
 
 ## Display components
 

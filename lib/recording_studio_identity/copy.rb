@@ -41,7 +41,7 @@ module RecordingStudioIdentity
     module_function
 
     def t(key, **)
-      I18n.t("#{PREFIX}.#{key}", **)
+      I18n.t("#{PREFIX}.#{key}", **RecordingStudioIdentity.configuration.terminology.interpolations, **)
     end
 
     def user_message(message)

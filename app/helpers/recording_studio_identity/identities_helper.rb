@@ -12,6 +12,10 @@ module RecordingStudioIdentity
       image_processing_quality
     ].freeze
 
+    def identity_t(key, **)
+      RecordingStudioIdentity::Copy.t(key, **)
+    end
+
     def identity_home_path
       main_app.root_path if main_app.respond_to?(:root_path)
     end

@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 RecordingStudioIdentity.configure do |config|
+  # config.label = "Identity"
+  # config.plural_label = "Identities"
+  #
   # config.types = {
   #   person: {
   #     label: "Person",

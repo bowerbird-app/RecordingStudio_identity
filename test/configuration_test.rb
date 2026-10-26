@@ -16,7 +16,10 @@ class ConfigurationTest < Minitest::Test
     assert_equal "Website", @configuration.category("company").field_label(:website_url)
     assert_equal "Image", @configuration.category("brand").field_label(:image)
     assert_equal "What would you like to represent?", @configuration.creation.title
+    assert_equal "Choose the type of identity you'd like to create.", @configuration.creation.description
     assert_equal "Continue", @configuration.creation.continue_label
+    assert_equal "Identity", @configuration.label
+    assert_equal "Identities", @configuration.plural_label
     assert_instance_of RecordingStudio::Hooks, @configuration.hooks
   end
 
@@ -49,6 +52,43 @@ class ConfigurationTest < Minitest::Test
     end
 
     assert_includes error.message, "motto"
+  end
+
+  def test_label_and_plural_label_replace_the_identity_words
+    locale = File.expand_path("../config/locales/en.yml", __dir__)
+    unless I18n.load_path.include?(locale)
+      I18n.load_path << locale
+      I18n.reload!
+    end
+
+    @configuration.label = "Press profile"
+    @configuration.plural_label = "Press profiles"
+    words = @configuration.terminology
+
+    assert_equal "Press profile", words.label
+    assert_equal "Press profiles", words.plural_label
+    assert_equal "press profile", words.term
+    assert_equal "press profiles", words.plural
+    assert_equal "a", words.article
+    assert_equal "Choose the type of press profile you'd like to create.", @configuration.creation.description
+    assert_equal "Press profile", @configuration.to_h.fetch(:label)
+    assert_equal "Press profiles", @configuration.to_h.fetch(:plural_label)
+  end
+
+  def test_blank_labels_fall_back_to_identity
+    @configuration.label = "  "
+    @configuration.plural_label = ""
+
+    assert_equal "Identity", @configuration.label
+    assert_equal "Identities", @configuration.plural_label
+    assert_equal "an", @configuration.terminology.article
+  end
+
+  def test_merge_sets_labels
+    @configuration.merge!(label: "Profile", plural_label: "Profiles")
+
+    assert_equal "Profile", @configuration.label
+    assert_equal "Profiles", @configuration.plural_label
   end
 
   def test_blank_creation_description_is_omitted

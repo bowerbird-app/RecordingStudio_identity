@@ -218,6 +218,8 @@ class RecordingStudioIdentityTest < Minitest::Test
 
     assert_includes readme, "RecordingStudioIdentity"
     assert_includes readme, "RecordingStudioIdentity.configure"
+    assert_includes readme, "config.label"
+    assert_includes readme, "config.plural_label"
     assert_includes readme, "allow: :one"
     assert_includes readme, "RecordingStudioIdentity.create"
     refute_includes readme, %w[Gem Template].join
@@ -234,10 +236,10 @@ class RecordingStudioIdentityTest < Minitest::Test
     view_source = File.read(view_path)
     card_source = File.read(File.expand_path("dummy/app/views/home/_example.html.erb", __dir__))
 
-    assert_includes view_source, 'title: "Identities"'
+    assert_includes view_source, 'title: "Press profiles"'
     assert_includes(
       view_source,
-      'subtitle: "One identity, many identities, a nested parent, and configurable creation text."'
+      'subtitle: "One press profile, many press profiles, a nested parent, and configurable creation text."'
     )
     assert_includes card_source, "FlatPack::Card::Component"
     assert_includes view_source, "dummy_page_nav"

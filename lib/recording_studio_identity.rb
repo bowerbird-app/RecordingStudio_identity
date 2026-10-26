@@ -7,6 +7,7 @@ require "recording_studio_trashable"
 require "flat_pack"
 require "recording_studio_identity/version"
 require "recording_studio_identity/categories"
+require "recording_studio_identity/terminology"
 require "recording_studio_identity/configuration"
 require "recording_studio_identity/engine"
 

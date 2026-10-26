@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 RecordingStudioIdentity.configure do |config|
+  config.label = "Press profile"
+  config.plural_label = "Press profiles"
+
   field_labels = {
     name: "Name",
     description: "About",
@@ -36,8 +39,8 @@ RecordingStudioIdentity.configure do |config|
   }
 
   config.creation = {
-    title: "What would you like to represent?",
-    description: "Choose the type of identity you'd like to create.",
+    title: "Who is this press profile for?",
+    description: "Choose the type of press profile you'd like to create.",
     continue_label: "Continue"
   }
 end

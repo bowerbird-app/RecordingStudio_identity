@@ -1,11 +1,11 @@
 <% recording_studio_page_nav(
-  title: t("recording_studio.identity.unconfigured.title"),
+  title: identity_t("unconfigured.title"),
   page_nav_back_url: recording_identities_path(@parent),
-  page_nav_back_label: t("recording_studio.identity.navigation.back")
+  page_nav_back_label: identity_t("navigation.back")
 ) %>
 
 <%= render FlatPack::Alert::Component.new(
   style: :warning,
-  title: t("recording_studio.identity.unconfigured.title"),
-  description: t("recording_studio.identity.unconfigured.description")
+  title: identity_t("unconfigured.title"),
+  description: identity_t("unconfigured.description")
 ) %>

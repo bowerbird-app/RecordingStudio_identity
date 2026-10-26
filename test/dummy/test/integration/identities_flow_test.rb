@@ -21,8 +21,8 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_includes response.body, "One identity"
-    assert_includes response.body, "Many identities"
+    assert_includes response.body, "One press profile"
+    assert_includes response.body, "Many press profiles"
     assert_includes response.body, "Nested parent"
     assert_includes response.body, "Creation text"
   end
@@ -33,21 +33,24 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Northwind"
     assert_includes response.body, "Dove"
-    assert_includes response.body, "+ Identity"
+    assert_includes response.body, "Press profiles"
+    assert_includes response.body, "+ Press profile"
+    refute_includes response.body, "+ Identity"
 
     get recording_studio_identity.recording_identities_path(@studio)
 
     assert_response :success
     assert_includes response.body, "Sarah Jones"
-    refute_includes response.body, "+ Identity"
+    assert_includes response.body, "Press profiles"
+    refute_includes response.body, "+ Press profile"
   end
 
   test "category selection uses configured copy and shared field labels" do
     get recording_studio_identity.new_recording_identity_path(@agency)
 
     assert_response :success
-    assert_includes response.body, "What would you like to represent?"
-    assert_includes response.body, "Choose the type of identity you&#39;d like to create."
+    assert_includes response.body, "Who is this press profile for?"
+    assert_includes response.body, "Choose the type of press profile you&#39;d like to create."
     assert_includes response.body, "Continue"
     assert_includes response.body, "Company"
     refute_includes response.body, "Company name"
@@ -55,6 +58,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_identity.new_recording_identity_path(@agency, kind: "company")
 
     assert_response :success
+    assert_includes response.body, "Add press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "Website"
     assert_includes response.body, "About"
@@ -95,6 +99,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_identity.edit_identity_path(identity)
 
     assert_response :success
+    assert_includes response.body, "Edit press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "About"
     refute_includes response.body, "Full name"
@@ -163,8 +168,8 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_identity.recording_identities_path(@studio)
 
     follow_redirect!
-    assert_includes response.body, "Restore identity"
-    refute_includes response.body, "+ Identity"
+    assert_includes response.body, "Restore press profile"
+    refute_includes response.body, "+ Press profile"
 
     get recording_studio_identity.edit_identity_path(identity)
     assert_redirected_to recording_studio_identity.identity_path(identity)
@@ -179,21 +184,21 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Harbour Trust"
-    assert_includes response.body, "+ Identity"
+    assert_includes response.body, "+ Press profile"
   end
 
   test "zero categories render a configuration error and one category skips the chooser" do
     with_categories({}) do
       get recording_studio_identity.new_recording_identity_path(@agency)
       assert_response :success
-      assert_includes response.body, "No identity categories are configured"
+      assert_includes response.body, "No press profile categories are configured"
     end
 
     with_categories(person: { label: "Person", fields: { name: "Full name" } }) do
       get recording_studio_identity.new_recording_identity_path(@agency)
       assert_response :success
       assert_includes response.body, "Full name"
-      refute_includes response.body, "What would you like to represent?"
+      refute_includes response.body, "Who is this press profile for?"
     end
   end
 
@@ -296,15 +301,29 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes file_input["data-action"].to_s, "attachment-revision-upload#fileSelected"
     refute_nil field.at_css("[data-recording-studio-attachable--attachment-revision-upload-target='signedBlobInput']")
 
+    layout = form.at_css("[data-identity-form-layout='columns']")
+    refute_nil layout
+    assert_includes layout["class"], "grid-cols-1"
+    assert_includes layout["class"], "md:grid-cols-[auto_1fr]"
+    columns = layout.element_children
+    assert_equal "image", columns[0]["data-identity-form-column"]
+    assert_equal "details", columns[1]["data-identity-form-column"]
+    assert columns[0].at_css("[data-testid='identity-image-field']")
+    assert columns[1].at_css("[name='identity[name]']")
+    assert columns[1].at_css("[name='identity[website_url]']")
+    assert columns[1].at_css("[name='identity[description]']")
+    assert_nil columns[1].at_css("[data-testid='identity-image-field']")
+
     fields = [
+      field,
       form.at_css("[name='identity[name]']"),
       form.at_css("[name='identity[website_url]']"),
       form.at_css("[name='identity[description]']"),
-      field,
       form.css("button").find { |button| button.text.include?("Save") }
     ]
     assert fields.all?
     assert_equal fields, fields.sort
+    assert_nil layout.css("button").find { |button| button.text.include?("Save") }
     refute_includes body, "You can add an image now or after the identity is saved."
     assert_nil document.at_css("form#remove-identity-image")
 

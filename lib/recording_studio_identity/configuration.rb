@@ -3,11 +3,26 @@
 module RecordingStudioIdentity
   class Configuration
     attr_reader :hooks, :categories
+    attr_writer :label, :plural_label
 
     def initialize
       @hooks = RecordingStudio::Hooks.new
       @categories = Categories.defaults
       @creation_overrides = {}
+      @label = nil
+      @plural_label = nil
+    end
+
+    def terminology
+      Terminology.new(label: @label, plural_label: @plural_label)
+    end
+
+    def label
+      terminology.label
+    end
+
+    def plural_label
+      terminology.plural_label
     end
 
     def types
@@ -38,6 +53,7 @@ module RecordingStudioIdentity
 
     def to_h
       {
+        label: label, plural_label: plural_label,
         types: categories.map(&:key),
         creation: {
           title: creation.title,
@@ -66,7 +82,7 @@ module RecordingStudioIdentity
     end
 
     def copy(key, default)
-      I18n.t("recording_studio.identity.#{key}", default: default)
+      I18n.t("recording_studio.identity.#{key}", **terminology.interpolations, default: default)
     end
   end
 end

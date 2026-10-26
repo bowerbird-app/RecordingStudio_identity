@@ -3,7 +3,7 @@
 <% label = identity_field_label(category, :image) %>
 <% display_name = image && RecordingStudioIdentity.display_name(identity) %>
 <% src = image && authorized_attachment_preview_path(image, :square_med) %>
-<% alt = display_name && t("recording_studio.identity.image.alt", name: display_name) %>
+<% alt = display_name && identity_t("image.alt", name: display_name) %>
 <%= render FlatPack::ImageInput::Component.new(
   name: "image[file]",
   src: src,

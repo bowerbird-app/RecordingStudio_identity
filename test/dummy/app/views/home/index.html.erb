@@ -1,24 +1,24 @@
-<% dummy_page_nav(title: "Identities", back_url: root_path) %>
+<% dummy_page_nav(title: "Press profiles", back_url: root_path) %>
 
 <div class="flex w-full flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Identities",
-    subtitle: "One identity, many identities, a nested parent, and configurable creation text.",
+    title: "Press profiles",
+    subtitle: "One press profile, many press profiles, a nested parent, and configurable creation text.",
     variant: :h1
   ) %>
 
   <div class="grid gap-6 lg:grid-cols-2">
     <%= render "example",
-          title: "One identity",
-          body: "A workspace holds a single identity. A trashed identity keeps the slot until it is restored or purged.",
+          title: "One press profile",
+          body: "A workspace holds a single press profile. A trashed press profile keeps the slot until it is restored or purged.",
           href: (@studio && recording_studio_identity.recording_identities_path(@studio)) %>
     <%= render "example",
-          title: "Many identities",
-          body: "An agency lists every identity it holds and can add another.",
+          title: "Many press profiles",
+          body: "An agency lists every press profile it holds and can add another.",
           href: (@agency && recording_studio_identity.recording_identities_path(@agency)) %>
     <%= render "example",
           title: "Nested parent",
-          body: "A project under a workspace holds its own identities.",
+          body: "A project under a workspace holds its own press profiles.",
           href: (@project && recording_studio_identity.recording_identities_path(@project)) %>
     <%= render "example",
           title: "Creation text",
