@@ -1,173 +1,223 @@
-# GemTemplate
+# Recording Studio Identity
 
-Internal template for building Rails engine addons on top of Recording Studio 4.x.
+Recording Studio Identity stores public identities under any recording that opts in. A person, company, brand, or organisation is a `RecordingStudio::Recording`. The permanent id is that recording id. Revisions replace the `RecordingStudioIdentity::Identity` snapshot and keep the same recording.
 
-## What's Included
+The gem does not represent a user account, a workspace, or a login. It does not depend on Recording Studio Company, and it does not migrate Company records.
 
-- **Recording Studio** 4.x gem pinned and configured
-- **Devise** authentication with a pre-seeded admin user
-- **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
-- **FlatPack** UI component library for all views
-- **Dummy app** (`test/dummy/`) with a FlatPack sign-in screen, a home page on Recording Studio's default layout, mounted Recording Studio routes, and FlatPack's built-in rounded theme
+Source and changelog: `https://github.com/bowerbird-app/RecordingStudio_identity`.
 
-Authenticated dummy pages use Recording Studio's shared default layout (`RecordingStudio::UsesDefaultLayout`) plus FlatPack CSS and JS. Devise keeps its own sign-in layout. Dummy `/docs/*` pages stay in the dummy app as a host-app sandbox; they are not the product README.
+## What an identity is
 
-## Quick Start
-
-### Cursor Cloud Agent (Recommended)
-
-A Cloud Agent boots this repo into a ready-to-use dev environment with no manual steps. The setup lives in `.cursor/`:
-
-- `install.sh` provisions Ruby (pinned by `.ruby-version`), PostgreSQL 16, all gems, the seeded dummy database, and compiled CSS at build time, then fetches Recording Studio skills.
-- `start.sh` starts PostgreSQL on every boot.
-- `environment.json` runs the `rails-server` and `tailwind-watch` terminals and exposes port 3000.
-
-Open port 3000 and sign in at `/users/sign_in`. No environment variables are required — the dummy app's `database.yml` defaults match the provisioned PostgreSQL cluster.
-
-### GitHub Codespaces
-
-1. Click **Code** → **Codespaces** → **Create codespace**
-2. Wait for setup to complete
-3. Run:
-   ```bash
-   cd test/dummy
-   bin/rails db:setup
-   bin/dev
-   ```
-4. Open port 3000 — you'll land on the dummy app home page and can sign in at `/users/sign_in`
-
-The dummy app is intended as a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and Recording Studio route wiring.
-
-Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
-
-### Login Credentials
-
-| Field    | Value             |
-|----------|-------------------|
-| Email    | admin@admin.com   |
-| Password | Password          |
-
-The login form is prefilled with these credentials for fast access.
-
-### Useful Routes
-
-- `/` — dummy app home page
-- `/users/sign_in` — Devise sign-in page
-- `/recording_studio` — redirect to `/` while the mounted Recording Studio engine remains data/API-focused
-- `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — dummy-only starter pages
-
-The home page in `test/dummy/app/views/home/index.html.erb` is a starting point for a minimal demo of the gem's primary behavior. Keep deeper explanations on the dummy docs pages, not in this README.
-
-## Architecture
-
-### Root Recording Pattern
-
-This template follows Recording Studio's root recording pattern:
-
-- **Workspace** is the top-level recordable
-- **Folder** and **Page** demonstrate nested recordables under the workspace root
-- Each configured recordable declares `recording_studio_recordable(...)`; strict declaration validation stays enabled
-- A root `RecordingStudio::Recording` wraps the Workspace
-- `Current.actor` is set from `current_user` (Devise) in `ApplicationController`
-
-### Extending Recording Studio
-
-To add new recordable types:
-
-1. Create your model (e.g., `Page`, `Comment`)
-2. Register it in `config/initializers/recording_studio.rb`:
-   ```ruby
-   RecordingStudio.configure do |config|
-     config.recordable_types = ["Workspace", "YourNewType"]
-   end
-   ```
-3. Declare whether the model can be a root and which parents may contain it:
-   ```ruby
-   class YourNewType < ApplicationRecord
-     recording_studio_recordable label: "Your new type",
-                                 root: false,
-                                 allowed_parent_types: ["Workspace", "Folder"]
-   end
-   ```
-4. Validate declarations and create recordings under the root:
-   ```ruby
-   RecordingStudio.validate_recordable_declarations!
-   root_recording = RecordingStudio.root_recording_for(workspace)
-   root_recording.record(YourNewType) do |record|
-     record.title = "Example"
-   end
-   ```
-
-### Recordable Declarations
-
-Every configured ActiveRecord recordable type must declare its hierarchy rules. Declarations are required; they are not version-specific.
-
-- `Workspace` declares `root: true`
-- `Folder` and `Page` declare `root: false, allowed_parent_types: ["Workspace", "Folder"]`
-- `config.require_recordable_declarations = true` remains enabled in the dummy app initializer
-
-Useful console checks:
+`RecordingStudioIdentity::Identity` is a non-root recordable.
 
 ```ruby
-RecordingStudio.validate_recordable_declarations!
-RecordingStudio.root_recordable_types
-RecordingStudio.allowed_parent_types_for("Page")
+recording_studio_recordable label: "Identity", plural_label: "Identities", root: false
 ```
 
-### Capabilities
+Parents opt in with the identities capability. The identity does not declare a fixed parent list. Recording Studio registers each parent type that calls `Identities.to`.
 
-Capability mixins are opt-in. Installing this gem does not enable mixins on host types.
+Fields:
 
-The dummy Workspace enables Accessible because that addon is bundled:
+| Field | Required | Limit | Notes |
+| --- | --- | --- | --- |
+| `name` | yes | 200 | Whitespace is collapsed to nil when blank |
+| `kind` | yes | category key | Checked against configured categories on create |
+| `description` | no | 5000 | Omitted from the detail page when blank |
+| `website_url` | no | 2048 | HTTP or HTTPS with a host |
+| image | no | 10 MB | One Attachable image |
+
+`kind` is stored lowercase. Create rejects a kind that is not configured. Update does not accept `kind`. If a category is later removed from configuration, existing identities keep that kind and stay editable.
+
+`website_href` returns the stored URL only when it is an HTTP or HTTPS URI with a host. The gem does not add a scheme for you.
+
+Trashable is enabled. Duplicatable and Orderable are not.
+
+## Parent capability
 
 ```ruby
-RecordingStudio.enable_capability(:accessible, on: Workspace)
+include RecordingStudio::Capabilities::Identities.to(allow: :one)
+include RecordingStudio::Capabilities::Identities.to(allow: :many)
 ```
 
-The template also ships one example mixin that uses core 4.2.0's `include_for` factory:
+`allow:` is required. Any other value raises `RecordingStudioIdentity::ConfigurationError` with the text `allow: :one or allow: :many`.
+
+`:one` allows a single identity. A trashed identity still occupies that slot until it is purged. A second create raises `RecordingStudioIdentity::IdentityAlreadyExists`. `:many` lists every live identity in name order.
+
+Shared roots cannot hold identities. The write path locks the root recording and then the parent, in the same order as `record!`.
+
+## Configuration
 
 ```ruby
-include RecordingStudio::Capabilities::Example.to(label: "dummy workspace")
+RecordingStudioIdentity.configure do |config|
+  config.types = {
+    person: {
+      label: "Person",
+      description: "Creators, influencers and individuals",
+      icon: "user",
+      fields: {
+        name: "Full name",
+        description: "Biography",
+        image: "Profile photo",
+        website_url: "Website"
+      }
+    }
+  }
+
+  config.creation = {
+    title: "What would you like to represent?",
+    description: "Choose the type of identity you'd like to create.",
+    continue_label: "Continue"
+  }
+end
 ```
 
-`.to` wraps `RecordingStudio::Capabilities.include_for`. It does not add a fourth verb and it does not call `enable_capability` / `set_capability_options` itself. Folder and Page stay without the example mixin.
+`config.types` is a map of category key to label, description, icon, and field labels. Keys are normalized to lowercase. Duplicate normalized keys are rejected. Unknown options and unknown field names are rejected. Field labels change presentation only. Every category uses the same model.
 
-Use core `RecordingStudio::Hooks` and `RecordingStudio::Services::BaseService`. Do not copy those classes into a new addon.
+Icons accept the Heroicon names used by FlatPack. `user-round`, `building-2`, and `users` are accepted as aliases.
 
-### FlatPack UI Components
+When `config.types` is omitted, the gem uses person, company, brand, and organisation. There is no Featured In default.
 
-All views use FlatPack ViewComponents. Available components include:
+`config.creation` supplies the category screen title, description, and continue label. Blank values fall back to `config/locales/en.yml`. Set `description` to a blank string to omit it.
 
-- `FlatPack::Button::Component` — Buttons (`:primary`, `:secondary`, `:ghost`)
-- `FlatPack::Card::Component` — Cards (`:default`, `:elevated`, `:outlined`)
-- `FlatPack::Alert::Component` — Alerts (`:success`, `:error`, `:warning`, `:info`)
-- `FlatPack::Badge::Component` — Status badges
-- `FlatPack::Table::Component` — Data tables
-- `FlatPack::TextInput::Component`, `EmailInput`, `PasswordInput` — Form inputs
-- `FlatPack::PageNav::Component` — Default-layout page navigation
-- `FlatPack::PageTitle::Component` — Page titles
+## Public Ruby API
 
-Use the live FlatPack demo app at [flatpack.bowerbird.io](https://flatpack.bowerbird.io/) as the approved UI reference for current shared patterns. Its component table is the fastest way to discover available FlatPack components before introducing new custom UI.
+Reads do not authorize. Writes require Accessible `:edit` on the parent or identity, and `RecordingStudio.record!` still runs the host `authorize_write` hook.
 
-See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full documentation.
+```ruby
+recording = RecordingStudioIdentity.create(
+  parent_recording,
+  actor: current_user,
+  kind: "person",
+  name: "Ada Lovelace",
+  description: "Mathematician",
+  website_url: "https://example.com",
+  idempotency_key: "optional-retry-key",
+  signed_blob_id: blob.signed_id
+)
+```
 
-## Tech Stack
+`create` returns a `RecordingStudio::Recording`. The same parent and `idempotency_key` return that recording again, including after it is trashed. A second create on a full `:one` parent raises `IdentityAlreadyExists` instead of returning the first recording.
 
-| Component       | Version |
-|-----------------|---------|
-| Ruby            | 3.3+    |
-| Rails           | 8.1+    |
-| PostgreSQL      | 16      |
-| TailwindCSS     | 4       |
-| RecordingStudio | 4.x (`~> 4.2` in the gemspec; dummy GitHub tag `v4.7.0`) |
-| Accessible      | dummy GitHub tag `v0.18.0` |
-| Trashable       | dummy GitHub tag `v0.11.0` (`require: false`; query-only via Accessible) |
-| Root Switchable | dummy GitHub tag `v0.9.0` |
-| FlatPack        | dummy GitHub tag `v0.1.196` |
-| Devise          | latest  |
+```ruby
+RecordingStudioIdentity.identity(parent_recording) # Recording or nil; raises on :many
+RecordingStudioIdentity.identities(parent_recording, include_trashed: false)
+RecordingStudioIdentity.find(recording_id)
+RecordingStudioIdentity.update(identity_recording, actor:, name:, description:, website_url:)
+```
 
-The dummy Gemfile keeps `github:` sources so Bundler can fetch those gems. The gemspec still pins `recording_studio` to `~> 4.2` so copied addons declare the core dependency even when GitHub is the fetch source.
+`update` uses `revise`. The recording id stays the same. An update that does not change name, description, or website URL does not write a revision.
 
-## Documentation
+```ruby
+RecordingStudioIdentity.categories
+RecordingStudioIdentity.category("person")
+RecordingStudioIdentity.category_for(identity_recording)
+RecordingStudioIdentity.creation
+RecordingStudioIdentity.display_name(identity_recording)
+RecordingStudioIdentity.image(identity_recording)
+RecordingStudioIdentity.set_image(identity_recording, signed_blob_id:, actor:)
+RecordingStudioIdentity.remove_image(identity_recording, actor:)
+RecordingStudioIdentity.can?(:view, recording, actor:)
+```
 
-The original gem template documentation is preserved in `docs/gem_template/` as architectural reference material. Use it as background on the engine conventions; this README and the dummy app are the source of truth for the Recording Studio addon workflow.
+`can?` accepts `:view`, `:create`, `:update`, `:trash`, and `:restore`.
+
+Trash and restore use Trashable on the recording. There is no second wrapper.
+
+```ruby
+identity_recording.recording_studio_trashable_trash!(actor:)
+identity_recording.recording_studio_trashable_restore!(actor:)
+```
+
+Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentFile`, `RemoveAttachment`). Content types must be images and the file must be at most 10 MB.
+
+## Creation and management UI
+
+Routes are mounted with the engine. The default path is `/recording_studio_identity`.
+
+1. Category screen. Each configured category is a card with icon, label, and description. The heading, description, and continue label come from `config.creation`. Nothing is recorded on this step.
+2. Details screen. Labels come from that category (`name`, `description`, `image`, `website_url`).
+
+One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
+
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. `:one` index shows the identity, or a create action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the category labels. Delete moves the identity to the trash.
+
+## Display components
+
+These helpers are for other gems. They do not generate host routes.
+
+```erb
+<%= recording_studio_identity_image(identity, size: :lg, shape: :circle) %>
+<%= recording_studio_identity_card(identity, description: true, website: true) %>
+<%= recording_studio_identity_display_name(identity) %>
+```
+
+Sizes follow FlatPack Avatar (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`). Shapes are `circle`, `rounded`, and `square`. A missing image falls back to initials. The card shows the image, name, and the optional description and website.
+
+## Authorization and other capabilities
+
+Accessible decides who can view and edit. Create is authorized on the parent. The identity recordable does not enable Accessible itself. Access walks the parent chain to the root.
+
+Attachable stores the optional image. Trashable cascades, so the image is trashed and restored with the identity.
+
+State changes go through `RecordingStudio.record!` (which logs the created event) and `revise`. Retries pass `idempotency_key`. The gem uses `RecordingStudio::Hooks` and Attachable services that extend `RecordingStudio::Services::BaseService`. It does not copy those classes.
+
+## Boundaries
+
+An identity is not a user and not a workspace. Do not store `workspace_id` or `owner_id` on the snapshot. Store the recording id.
+
+The gem does not read or write Company records. A future move from Company to Identity has to copy recording references, revision history, images, and parent relationships, and it has to retarget Press Kits. That migration is not included and does not run on install.
+
+## Installation
+
+Pin the gem and its runtime dependencies, then install.
+
+```ruby
+gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
+```
+
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `~> 4.2`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.213`.
+
+```bash
+bin/rails generate recording_studio_identity:install
+bin/rails generate recording_studio_identity:migrations
+bin/rails db:migrate
+bin/rails active_storage:install
+bin/rails db:migrate
+```
+
+`recording_studio_identity:install` mounts the engine, adds an initializer, and adds Tailwind sources for the engine and FlatPack. Copy the identity migration into the host. Active Storage tables are required before an image can be uploaded.
+
+Enable the capability on each parent model, root or not.
+
+```ruby
+class Workspace < ApplicationRecord
+  recording_studio_recordable label: "Workspace", root: true
+  include RecordingStudio::Capabilities::Identities.to(allow: :one)
+end
+```
+
+Register your own recordable types in the Recording Studio initializer. The engine registers `RecordingStudioIdentity::Identity`.
+
+## Dummy application
+
+The dummy app at `test/dummy` signs in with `admin@admin.com` / `Password`.
+
+- Workspace `Studio Workspace` holds one identity.
+- Agency `Harbour Agency` holds many identities.
+- Project `Harbour fit-out` sits under the studio workspace and holds its own identities.
+- The agency create screen uses the configured title, description, continue label, and category field labels.
+
+Dummy pins, written so the suite can see them: dummy GitHub tag `v4.7.0` for Recording Studio, dummy GitHub tag `v0.1.213` for FlatPack, dummy GitHub tag `v0.18.0` for Accessible, dummy GitHub tag `v0.15.0` for Attachable, dummy GitHub tag `v0.11.0` for Trashable, dummy GitHub tag `v0.9.0` for root switchable, and dummy GitHub tag `v0.5.0` for cache. Metrics stays on dummy GitHub tag `v0.2.0`.
+
+## Tests
+
+```bash
+bundle exec rake test:rename_verification
+bundle exec rake test:all
+bundle exec rubocop
+bin/bundler-audit
+bin/brakeman
+bin/importmap audit
+```
+
+`rake test:all` runs the gem suite and the dummy app. Identity behaviour is covered against the real Recording Studio, Accessible, Attachable, and Trashable gems.

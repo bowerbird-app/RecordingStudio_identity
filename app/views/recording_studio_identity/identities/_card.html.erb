@@ -1,0 +1,18 @@
+<%# locals: (identity:, show_description: true, show_website: true) %>
+<% record = identity.recordable %>
+<article data-recording-studio-identity-card class="flex gap-4 rounded-2xl border border-(--surface-border-color) bg-(--surface-background-color) p-4">
+  <%= recording_studio_identity_image(identity, size: :lg, shape: :circle) %>
+  <div class="min-w-0 flex flex-col gap-1">
+    <h2 class="text-base font-semibold text-(--surface-content-color)"><%= record.name %></h2>
+    <% if show_description && record.description.present? %>
+      <p class="line-clamp-3 text-sm text-(--surface-muted-content-color)"><%= record.description %></p>
+    <% end %>
+    <% if show_website && record.website_url.present? %>
+      <% if (website_href = record.website_href) %>
+        <%= link_to record.website_url, website_href, target: "_blank", rel: "noopener noreferrer", class: "truncate text-sm text-(--surface-muted-content-color)" %>
+      <% else %>
+        <span class="truncate text-sm text-(--surface-muted-content-color)"><%= record.website_url %></span>
+      <% end %>
+    <% end %>
+  </div>
+</article>

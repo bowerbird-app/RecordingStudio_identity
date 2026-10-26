@@ -1,0 +1,83 @@
+en:
+  recording_studio:
+    identity:
+      navigation:
+        back: "Back"
+        home: "Home"
+      creation:
+        title: "What would you like to represent?"
+        description: "Choose the type of identity you'd like to create."
+        continue_label: "Continue"
+      titles:
+        index: "Identities"
+        add: "Add identity"
+        edit: "Edit identity"
+        edit_with_name: "Edit %{name}"
+      actions:
+        add_identity: "Add identity"
+        add_identity_plus: "+ Identity"
+        edit_identity: "Edit identity"
+        save: "Save"
+        cancel: "Cancel"
+        delete: "Delete"
+        restore: "Restore"
+        restore_identity: "Restore identity"
+        restore_aria: "Restore %{name}"
+        view: "View"
+        view_aria: "View %{name}"
+        change_image: "Change image"
+        upload_image: "Upload image"
+        remove_image: "Remove image"
+      fields:
+        name: "Name"
+        description: "Description"
+        image: "Image"
+        website_url: "Website"
+      placeholders:
+        website: "https://example.com"
+      empty:
+        no_identity_title: "No identity yet"
+        no_identity_description: "This %{type} holds one identity."
+        no_identities_title: "No identities yet"
+        no_identities_description: "Identities added to %{name} are listed here."
+      unconfigured:
+        title: "No identity categories are configured"
+        description: "Add at least one category in RecordingStudioIdentity.configure before creating an identity."
+      trash:
+        in_trash_title: "%{name} is in the trash"
+        restore_hint: "Restore it to change it again."
+        vacancy_description: "This %{type} holds one identity. Restore %{name} to use it again."
+        section_title: "In trash"
+        section_subtitle: "Restore an identity to list it again."
+        in_trash_suffix: " (in the trash)"
+      integrity:
+        title: "%{name} has %{count} identities"
+        holds_one: "This %{type} holds one identity."
+        stays_off: "Adding an identity stays off until the extra identities are moved or purged."
+      form:
+        save_failed_title: "The identity could not be saved"
+      new:
+        image_hint: "You can add an image now or after the identity is saved."
+      image:
+        alt: "%{name} image"
+      flashes:
+        cant_add: "An identity can't be added here."
+        was_added: "%{name} was added."
+        was_saved: "%{name} was saved."
+        in_trash: "%{name} is in the trash."
+        was_restored: "%{name} was restored."
+        cant_edit: "You can't edit %{name}."
+        choose_image: "Choose an image to upload."
+        image_updated: "The image was updated."
+        image_removed: "The image was removed."
+        already_identity: "%{name} is already the identity here"
+        integrity_recorded: "Only one identity is allowed here, but %{count} identities are recorded"
+        restore_before_change: "Restore %{name} before changing it"
+      errors:
+        not_found: "Not found"
+        page_missing: "This page doesn't exist, or you can't see it."
+        not_allowed: "Not allowed"
+        forbidden_description: "You don't have permission to make this change."
+      messages:
+        identity_taken: "Only one identity is allowed here"
+        image_taken: "An identity can have only one image"

@@ -1,0 +1,14 @@
+<%# locals: (identity:, category:) %>
+<div class="flex flex-col gap-3" data-testid="identity-image-field">
+  <span class="text-sm font-medium"><%= identity_field_label(category, :image) %></span>
+  <% if identity %>
+    <%= recording_studio_identity_image(identity, size: :xl, shape: :circle) %>
+  <% end %>
+  <%= file_field_tag "image_file",
+        accept: identity_image_accept,
+        direct_upload: true,
+        class: "block text-sm",
+        aria: { label: identity_field_label(category, :image) },
+        data: identity_image_form_data(auto_submit: false) %>
+  <p class="text-sm text-(--surface-muted-content-color)"><%= t("recording_studio.identity.new.image_hint") %></p>
+</div>

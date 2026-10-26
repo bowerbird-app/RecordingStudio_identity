@@ -1,0 +1,68 @@
+<% name = @identity.recordable.name %>
+<% record = @identity.recordable %>
+<% can_update = identity_can?(:update, @identity) %>
+<% recording_studio_page_nav(
+  title: name,
+  page_nav_back_url: recording_identities_path(@identity.parent_recording_id),
+  page_nav_back_label: t("recording_studio.identity.navigation.back")
+) %>
+
+<div class="flex w-full max-w-xl flex-col">
+  <div class="mb-5">
+    <%= recording_studio_identity_image(@identity, size: :xl, shape: :circle) %>
+  </div>
+
+  <%= render FlatPack::PageTitle::Component.new(title: name, subtitle: identity_category_label(@identity)) %>
+
+  <% if record.description.present? || record.website_url.present? %>
+    <div class="flex flex-col gap-5">
+      <% if record.description.present? %>
+        <p class="whitespace-pre-line text-lg leading-7 text-(--surface-muted-content-color)"><%= record.description %></p>
+      <% end %>
+
+      <% if record.website_url.present? %>
+        <% website_label = record.website_url.sub(/\Ahttps?:\/\//i, "").sub(%r{/+\z}, "").presence || record.website_url %>
+        <div class="flex items-center gap-2 text-sm text-(--surface-muted-content-color)">
+          <%= render FlatPack::Shared::IconComponent.new(name: "globe-alt", size: :sm) %>
+          <% if (website_href = record.website_href) %>
+            <%= link_to website_label, website_href,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  class: "min-w-0 break-words text-(--surface-muted-content-color) no-underline" %>
+          <% else %>
+            <span class="min-w-0 break-words"><%= website_label %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @identity.trashed_at %>
+    <div class="mt-8 flex flex-col items-start gap-4">
+      <%= render FlatPack::Alert::Component.new(
+        style: :warning,
+        title: t("recording_studio.identity.trash.in_trash_title", name: name),
+        description: t("recording_studio.identity.trash.restore_hint")
+      ) %>
+      <% if identity_can?(:restore, @identity) %>
+        <%= form_with url: restore_identity_path(@identity), method: :post, class: "inline-flex" do %>
+          <%= render FlatPack::Button::Component.new(
+            text: t("recording_studio.identity.actions.restore_identity"),
+            style: :primary,
+            type: "submit"
+          ) %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if can_update %>
+    <div class="mt-8">
+      <%= render FlatPack::Button::Component.new(
+        text: t("recording_studio.identity.actions.edit_identity"),
+        style: :primary,
+        href: edit_identity_path(@identity)
+      ) %>
+    </div>
+  <% end %>
+</div>

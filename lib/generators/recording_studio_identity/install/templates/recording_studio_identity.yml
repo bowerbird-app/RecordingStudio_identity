@@ -1,0 +1,8 @@
+development:
+  creation:
+    title: "What would you like to represent?"
+    continue_label: "Continue"
+
+production:
+  creation:
+    continue_label: "Continue"

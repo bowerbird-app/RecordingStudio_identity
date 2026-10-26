@@ -12,7 +12,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
-    assert_equal [ "Workspace" ], RecordingStudio.root_recordable_types
+    assert_equal [ "Agency", "Workspace" ], RecordingStudio.root_recordable_types.sort
     assert_equal [ "Workspace", "Folder" ], RecordingStudio.allowed_parent_types_for("Page")
   end
 
@@ -63,23 +63,24 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     Current.actor = nil
   end
 
-  test "workspace opts into accessible and the example mixin without enabling them globally" do
+  test "workspace opts into accessible and one identity without enabling them globally" do
     workspace_source = File.read(Rails.root.join("app/models/workspace.rb"))
-    example_source = File.read(GemTemplate::Engine.root.join("lib/gem_template/capabilities/example.rb"))
+    capability_source = File.read(RecordingStudioIdentity::Engine.root.join("lib/recording_studio_identity/capability.rb"))
 
-    assert_includes workspace_source, "include RecordingStudio::Capabilities::Example.to(label: \"dummy workspace\")"
-    assert_includes example_source, "RecordingStudio::Capabilities.include_for(:example, **)"
-    refute_includes example_source, "enable_capability"
-    refute_includes example_source, "set_capability_options"
+    assert_includes workspace_source, "include RecordingStudio::Capabilities::Identities.to(allow: :one)"
+    assert_includes capability_source, "RecordingStudio::Capabilities.include_for("
+    assert_includes capability_source, "allow: RecordingStudioIdentity::Slots.parse!(options[:allow])"
+    refute_includes capability_source, "enable_capability"
 
     assert RecordingStudio.capability_enabled?(:accessible, for: Workspace)
-    assert RecordingStudio.capability_enabled?(:example, for: Workspace)
-    assert_equal({ label: "dummy workspace" }, RecordingStudio.capability_options(:example, for: Workspace))
+    assert RecordingStudio.capability_enabled?(:identities, for: Workspace)
+    assert_equal :one, RecordingStudio.capability_options(:identities, for: Workspace).to_h[:allow]
+    assert_equal :many, RecordingStudio.capability_options(:identities, for: Agency).to_h[:allow]
+    assert_equal :many, RecordingStudio.capability_options(:identities, for: Project).to_h[:allow]
     refute RecordingStudio.capability_enabled?(:accessible, for: Folder)
     refute RecordingStudio.capability_enabled?(:accessible, for: Page)
-    refute RecordingStudio.capability_enabled?(:example, for: Folder)
-    refute RecordingStudio.capability_enabled?(:example, for: Page)
-    assert_equal [ "Workspace" ], RecordingStudio.configuration.enabled_recordable_types_for(:example)
+    refute RecordingStudio.capability_enabled?(:identities, for: Folder)
+    refute RecordingStudio.capability_enabled?(:identities, for: Page)
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
   end
 end

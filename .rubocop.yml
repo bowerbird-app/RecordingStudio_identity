@@ -16,20 +16,35 @@ Style/StringLiterals:
 Layout/LineLength:
   Max: 120
 
-# Relax metrics for test files and generators
+# Relax metrics for test files, generators, and the identity public API.
+# The API module, category registry, engine, and controller stay together
+# so callers have one place to read.
 Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
+    - 'app/controllers/recording_studio_identity/identities_controller.rb'
+    - 'lib/recording_studio_identity.rb'
+    - 'lib/recording_studio_identity/engine.rb'
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/recording_studio_identity.rb'
+    - 'lib/recording_studio_identity/categories.rb'
 
 Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
     - 'lib/generators/**/*'
+    - 'app/controllers/recording_studio_identity/identities_controller.rb'
+    - 'lib/recording_studio_identity.rb'
+    - 'lib/recording_studio_identity/categories.rb'
 
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
     - 'lib/generators/**/*'
+    - 'app/controllers/recording_studio_identity/identities_controller.rb'
+    - 'lib/recording_studio_identity.rb'
 
 # Allow empty blocks in tests (common for stubs/mocks)
 Lint/EmptyBlock:

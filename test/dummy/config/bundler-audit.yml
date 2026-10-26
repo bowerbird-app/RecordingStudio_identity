@@ -3,3 +3,8 @@
 
 ignore:
   - CVE-THAT-DOES-NOT-APPLY
+  # FlatPack v0.1.213 pins view_component ~> 4.12.0. Attachable 0.15 requires
+  # that FlatPack line. The advisory is instance reuse of slot state, which
+  # these request-scoped renders do not do. Remove this when FlatPack allows
+  # view_component >= 4.14.
+  - GHSA-8qw7-6phv-7q6p
