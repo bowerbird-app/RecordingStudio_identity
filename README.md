@@ -140,11 +140,11 @@ Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentF
 Routes are mounted with the engine. The default path is `/recording_studio_identity`.
 
 1. Category screen. Each configured category is a card with icon, label, and description. The heading and continue label come from `config.creation`. The screen does not show `creation.description`. Continue is full width, with space above it. Nothing is recorded on this step.
-2. Details screen. From the `md` breakpoint the form is two columns. The image is the first column. Name, website, and about are the second. On a narrow screen the image sits above those fields. Labels come from that category. Save and Cancel sit under the columns.
+2. Details screen. From the `md` breakpoint the form is a two-column grid. The image, name, website, about, Save, and Cancel sit in column 1. The image uploader has no visible label. The file input keeps an accessible name. Cancel is a default-style button. Field labels come from that category.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses the same two-column layout and the category labels. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. Delete moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses that same column and the category labels. Delete is FlatPack's trash button in the layout top-right slot, and it expands left. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. The trash button moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
 
 ## Display components
 
@@ -180,7 +180,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 4.7.1` and `< 5`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.320`. Recording Studio 4.7.1 is the layout that matches this FlatPack page nav.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. Recording Studio 6.1 supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`.
 
 ```bash
 bin/rails generate recording_studio_identity:install

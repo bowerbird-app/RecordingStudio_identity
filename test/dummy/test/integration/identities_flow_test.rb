@@ -54,6 +54,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Choose the type of press profile you&#39;d like to create."
     assert_includes response.body, "Continue"
     assert_continue_spans_the_form(response.body)
+    assert_select "h1", count: 1, text: "Who is this press profile for?"
     assert_includes response.body, "Company"
     refute_includes response.body, "Company name"
 
@@ -61,10 +62,10 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Add press profile"
+    assert_select "h1", count: 1, text: "Add press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "Website"
     assert_includes response.body, "About"
-    assert_includes response.body, "Image"
     refute_includes response.body, "Company name"
     refute_includes response.body, "About the company"
     refute_includes response.body, "Company logo"
@@ -75,6 +76,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "attachment-revision-upload#fileSelected"
     refute_includes response.body, "Upload image"
     assert_identity_form_order(response.body, removable: false)
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
   end
 
   test "creating from the details form shows the identity and omits empty fields" do
@@ -102,6 +104,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Edit press profile"
+    assert_select "h1", count: 1, text: "Edit press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "About"
     refute_includes response.body, "Full name"
@@ -112,6 +115,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Change image"
     refute_includes response.body, "identity[kind]"
     assert_identity_form_order(response.body, removable: true)
+    assert_edit_trash_button(response.body, identity)
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer and creator", website_url: "https://example.com" }
@@ -133,12 +137,13 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_identity.identity_path(identity)
     assert_equal original_blob_id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
 
+    replacement = issued_blob(identity)
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
-      image: { signed_blob_id: stale.signed_id, remove: "1", file: fixture_file("portrait.png") }
+      image: { signed_blob_id: issued_signed_id(replacement), remove: "1", file: fixture_file("portrait.png") }
     }
     assert_redirected_to recording_studio_identity.identity_path(identity)
-    assert_equal stale.id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
+    assert_equal replacement.id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
@@ -290,16 +295,38 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
   def assert_page_nav_add_action(body)
     document = Nokogiri::HTML(body)
-    nav = document.at_css("nav.flat-pack-page-nav")
-    refute_nil nav
-    action = nav.css("a").find { |node| node.text.include?("+ Press profile") }
+    headings = document.css("h1")
+    assert_equal 1, headings.size
+    assert_equal "Press profiles", headings.first.text.squish
+
+    action = document.css("a").find { |node| node.text.include?("+ Press profile") }
     refute_nil action
     assert_equal "default", action["data-fp-style"]
     assert_empty action.xpath("ancestor::h1")
-    assert_empty action.xpath("preceding::h1")
-    heading = document.at_css("h1")
-    refute_nil heading
-    assert_nil heading.parent.css("a").find { |node| node.text.include?("+ Press profile") }
+    assert action.xpath("ancestor::header[contains(@class, 'fp-top-nav')]").any?
+    assert_empty action.xpath("ancestor::nav[contains(@class, 'flat-pack-page-nav')]")
+
+    page_nav = document.at_css("nav.flat-pack-page-nav")
+    refute_nil page_nav
+    assert_nil page_nav.css("a").find { |node| node.text.include?("+ Press profile") }
+    refute_nil page_nav.at_css("a[href='/']")
+  end
+
+  def assert_edit_trash_button(body, identity)
+    document = Nokogiri::HTML(body)
+    slot = document.at_css(".fp-top-nav__right")
+    refute_nil slot
+    control = slot.at_css("[data-controller~='flat-pack--trash-button']")
+    refute_nil control
+    assert_equal "left", control["data-fp-expand"]
+    form = control.at_css("form")
+    refute_nil form
+    assert_equal recording_studio_identity.identity_path(identity), form["action"]
+    method = form.at_css("input[name='_method']")
+    refute_nil method
+    assert_equal "delete", method["value"]
+    assert_nil document.at_css("#delete-identity")
+    assert_nil document.at_css("[data-identity-form-column='1'] #delete-identity")
   end
 
   def assert_continue_spans_the_form(body)
@@ -331,28 +358,36 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     layout = form.at_css("[data-identity-form-layout='columns']")
     refute_nil layout
     assert_includes layout["class"], "grid-cols-1"
-    assert_includes layout["class"], "md:grid-cols-[auto_1fr]"
-    columns = layout.element_children
-    assert_equal "image", columns[0]["data-identity-form-column"]
-    assert_equal "details", columns[1]["data-identity-form-column"]
-    assert columns[0].at_css("[data-testid='identity-image-field']")
-    assert columns[1].at_css("[name='identity[name]']")
-    assert columns[1].at_css("[name='identity[website_url]']")
-    assert columns[1].at_css("[name='identity[description]']")
-    assert_nil columns[1].at_css("[data-testid='identity-image-field']")
+    assert_includes layout["class"], "gap-6"
+    assert_includes layout["class"], "md:grid-cols-2"
+    column = layout.at_css("[data-identity-form-column='1']")
+    refute_nil column
+    assert_equal [column], layout.element_children.to_a
+    assert column.at_css("[data-testid='identity-image-field']")
+    assert column.at_css("[name='identity[name]']")
+    assert column.at_css("[name='identity[website_url]']")
+    assert column.at_css("[name='identity[description]']")
+    assert_empty field.css("label").map { |node| node.text.squish }.compact_blank
+    assert file_input["aria-label"].present?
+
+    cancel = column.css("a").find { |node| node.text.include?("Cancel") }
+    refute_nil cancel
+    assert_equal "default", cancel["data-fp-style"]
 
     fields = [
       field,
       form.at_css("[name='identity[name]']"),
       form.at_css("[name='identity[website_url]']"),
       form.at_css("[name='identity[description]']"),
-      form.css("button").find { |button| button.text.include?("Save") }
+      column.css("button").find { |button| button.text.include?("Save") }
     ]
     assert fields.all?
     assert_equal fields, fields.sort
-    assert_nil layout.css("button").find { |button| button.text.include?("Save") }
+    refute_nil column.css("button").find { |button| button.text.include?("Save") }
     refute_includes body, "You can add an image now or after the identity is saved."
     assert_nil document.at_css("form#remove-identity-image")
+    assert_nil document.at_css("#delete-identity")
+    assert_nil column.css("button").find { |button| button.text.strip == "Delete" }
 
     clear = field.at_css("button[aria-label='Remove image']")
     refute_nil clear
@@ -371,6 +406,19 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     ActiveStorage::Blob.create_and_upload!(
       io: StringIO.new(tiny_png), filename: filename, content_type: "image/png"
     )
+  end
+
+  def issued_blob(recording, filename = "portrait.png")
+    ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new(tiny_png),
+      filename: filename,
+      content_type: "image/png",
+      metadata: RecordingStudioAttachable::DirectUpload.metadata_for(recording: recording, actor: @user)
+    )
+  end
+
+  def issued_signed_id(blob)
+    blob.signed_id(purpose: RecordingStudioAttachable::DirectUpload::PURPOSE)
   end
 
   def fixture_file(filename)

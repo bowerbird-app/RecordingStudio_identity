@@ -1,11 +1,10 @@
-<% dummy_page_nav(title: "Config", back_url: root_path) %>
+<% dummy_page_nav(
+  title: "Config",
+  subtitle: "Category labels and the creation screen come from RecordingStudioIdentity.configure.",
+  back_url: root_path
+) %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: "Config",
-    subtitle: "Category labels and the creation screen come from RecordingStudioIdentity.configure.",
-    variant: :h1
-  ) %>
 
   <%= render FlatPack::CodeBlock::Component.new(
     language: :ruby,

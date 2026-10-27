@@ -1,11 +1,15 @@
 <% many = @allowance == :many %>
 <% heading = identity_t("titles.index") %>
+<% content_for :title, heading %>
 <% home_path = identity_home_path %>
-<% recording_studio_page_nav(
-  title: heading,
-  page_nav_back_url: home_path,
-  page_nav_back_label: (home_path && identity_t("navigation.home"))
-) %>
+<% if home_path %>
+  <% flat_pack_page_nav(
+    round: true,
+    style: :default,
+    back_href: home_path,
+    back_tooltip: identity_t("navigation.home")
+  ) %>
+<% end %>
 <% if identity_can?(:create, @parent) %>
   <% recording_studio_page_nav_right do %>
     <%= render FlatPack::Button::Component.new(
@@ -17,8 +21,6 @@
 <% end %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(title: heading) %>
-
   <% if many %>
     <%= render "list", parent: @parent, identities: @identities, trashed_identities: @trashed_identities %>
   <% elsif @integrity_error %>

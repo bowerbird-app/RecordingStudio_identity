@@ -1,15 +1,20 @@
-<% name = @identity.recordable.name %>
-<% recording_studio_page_nav(
-  title: identity_t("titles.edit_with_name", name: name),
-  page_nav_back_url: identity_path(@identity),
-  page_nav_back_label: identity_t("navigation.back")
+<% content_for :title, identity_t("titles.edit") %>
+<% content_for :subtitle, identity_category_label(@identity) %>
+<% flat_pack_page_nav(
+  round: true,
+  style: :default,
+  back_href: identity_path(@identity),
+  back_tooltip: identity_t("navigation.back")
 ) %>
+<% recording_studio_page_nav_right do %>
+  <%= render FlatPack::TrashButton::Component.new(
+    url: identity_path(@identity),
+    method: :delete,
+    expand: :left
+  ) %>
+<% end %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: identity_t("titles.edit"),
-    subtitle: identity_category_label(@identity)
-  ) %>
   <%= render "form",
         record: @record,
         category: @category,
@@ -19,6 +24,5 @@
         submit_text: identity_t("actions.save"),
         cancel_url: identity_path(@identity),
         unsaved_changes: true,
-        delete_url: identity_path(@identity),
         include_image: true %>
 </div>

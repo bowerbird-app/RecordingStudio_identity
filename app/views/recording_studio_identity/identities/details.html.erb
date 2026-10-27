@@ -1,14 +1,13 @@
-<% recording_studio_page_nav(
-  title: identity_t("titles.add"),
-  page_nav_back_url: (@categories.one? ? recording_identities_path(@parent) : new_recording_identity_path(@parent)),
-  page_nav_back_label: identity_t("navigation.back")
+<% content_for :title, identity_t("titles.add") %>
+<% content_for :subtitle, @category&.label %>
+<% flat_pack_page_nav(
+  round: true,
+  style: :default,
+  back_href: (@categories.one? ? recording_identities_path(@parent) : new_recording_identity_path(@parent)),
+  back_tooltip: identity_t("navigation.back")
 ) %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: identity_t("titles.add"),
-    subtitle: @category&.label
-  ) %>
   <%= render "form",
         record: @record,
         category: @category,

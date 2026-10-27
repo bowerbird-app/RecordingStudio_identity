@@ -1,9 +1,9 @@
-<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, delete_url: nil, identity: nil, include_image: false) %>
+<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, identity: nil, include_image: false) %>
 <% limits = RecordingStudioIdentity::Identity::LIMITS %>
 <%= form_with url: url,
       method: form_method,
       class: "flex max-w-3xl flex-col gap-6",
-      data: identity_form_data(include_image: include_image, unsaved_changes: unsaved_changes) do %>
+      data: identity_form_data(include_image: include_image, unsaved_changes: unsaved_changes, identity: identity) do %>
   <% if idempotency_key %>
     <%= hidden_field_tag :idempotency_key, idempotency_key, id: nil %>
   <% end %>
@@ -21,68 +21,54 @@
     ) %>
   <% end %>
 
-  <div class="<%= include_image ? "grid grid-cols-1 items-start gap-6 md:grid-cols-[auto_1fr]" : "flex flex-col gap-4" %>"
-       data-identity-form-layout="<%= include_image ? "columns" : "stack" %>">
-    <% if include_image %>
-      <div data-identity-form-column="image">
-        <%= render "image_field", identity: identity, category: category %>
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2" data-identity-form-layout="columns">
+    <div class="flex min-w-0 flex-col gap-6" data-identity-form-column="1">
+      <% if include_image %>
+        <%= render "image_field", identity: identity %>
+      <% end %>
+
+      <div class="flex flex-col gap-4">
+        <%= render FlatPack::TextInput::Component.new(
+          name: "identity[name]",
+          value: record.name,
+          label: identity_field_label(category, :name),
+          required: true,
+          maxlength: limits[:name],
+          error: identity_field_error(record, :name)
+        ) %>
+
+        <%= render FlatPack::UrlInput::Component.new(
+          name: "identity[website_url]",
+          value: record.website_url,
+          label: identity_field_label(category, :website_url),
+          placeholder: identity_t("placeholders.website"),
+          maxlength: limits[:website_url],
+          error: identity_field_error(record, :website_url)
+        ) %>
+
+        <%= render FlatPack::TextArea::Component.new(
+          name: "identity[description]",
+          value: record.description,
+          label: identity_field_label(category, :description),
+          rows: 4,
+          maxlength: limits[:description],
+          error: identity_field_error(record, :description)
+        ) %>
       </div>
-    <% end %>
 
-    <div class="flex min-w-0 flex-col gap-4" data-identity-form-column="details">
-      <%= render FlatPack::TextInput::Component.new(
-        name: "identity[name]",
-        value: record.name,
-        label: identity_field_label(category, :name),
-        required: true,
-        maxlength: limits[:name],
-        error: identity_field_error(record, :name)
-      ) %>
-
-      <%= render FlatPack::UrlInput::Component.new(
-        name: "identity[website_url]",
-        value: record.website_url,
-        label: identity_field_label(category, :website_url),
-        placeholder: identity_t("placeholders.website"),
-        maxlength: limits[:website_url],
-        error: identity_field_error(record, :website_url)
-      ) %>
-
-      <%= render FlatPack::TextArea::Component.new(
-        name: "identity[description]",
-        value: record.description,
-        label: identity_field_label(category, :description),
-        rows: 4,
-        maxlength: limits[:description],
-        error: identity_field_error(record, :description)
-      ) %>
+      <div class="flex flex-wrap items-center gap-3">
+        <%= render FlatPack::Button::Component.new(
+          text: submit_text,
+          style: unsaved_changes ? :default : :primary,
+          type: "submit",
+          data: identity_submit_data(include_image: include_image, unsaved_changes: unsaved_changes)
+        ) %>
+        <%= render FlatPack::Button::Component.new(
+          text: identity_t("actions.cancel"),
+          style: :default,
+          href: cancel_url
+        ) %>
+      </div>
     </div>
   </div>
-
-  <div class="flex flex-wrap items-center gap-3">
-    <%= render FlatPack::Button::Component.new(
-      text: submit_text,
-      style: unsaved_changes ? :default : :primary,
-      type: "submit",
-      data: identity_submit_data(include_image: include_image, unsaved_changes: unsaved_changes)
-    ) %>
-    <%= render FlatPack::Button::Component.new(
-      text: identity_t("actions.cancel"),
-      style: :ghost,
-      href: cancel_url
-    ) %>
-    <% if delete_url %>
-      <%= render FlatPack::Button::Component.new(
-        text: identity_t("actions.delete"),
-        style: :danger,
-        type: "submit",
-        form: "delete-identity",
-        class: "ml-auto"
-      ) %>
-    <% end %>
-  </div>
-<% end %>
-<% if delete_url %>
-  <%= form_with url: delete_url, method: :delete, id: "delete-identity", class: "hidden" do %>
-  <% end %>
 <% end %>

@@ -162,6 +162,22 @@ module RecordingStudioIdentity
       raise ImageRejected, e.message
     end
 
+    def import_image(identity, io:, filename:, content_type:, actor:)
+      current = live_identity_for_write!(identity, actor)
+      host_write do
+        result = RecordingStudioAttachable::Services::ImportAttachment.call(
+          parent_recording: current,
+          io: io,
+          filename: filename,
+          content_type: content_type,
+          actor: actor,
+          name: IMAGE_NAME
+        )
+        raise ImageRejected, result.error if result.failure?
+      end
+      current
+    end
+
     def remove_image(identity, actor:)
       current = live_identity_for_write!(identity, actor)
       image = Slots.occupant(current, IMAGE_TYPE)

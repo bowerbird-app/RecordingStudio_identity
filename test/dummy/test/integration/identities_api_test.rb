@@ -178,22 +178,19 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   test "image attach replace and remove use the attachment slot" do
-    identity = RecordingStudioIdentity.create(
-      @workspace, actor: @actor, kind: "person", name: "Ada", signed_blob_id: png_blob.signed_id
-    )
+    identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
+    RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
     image = RecordingStudioIdentity.image(identity)
     assert image
     assert_equal "image", image.recordable.name
 
-    replaced = png_blob("second.png")
-    RecordingStudioIdentity.set_image(identity, signed_blob_id: replaced.signed_id, actor: @actor)
+    replaced = issued_blob(identity, "second.png")
+    RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id_for(replaced), actor: @actor)
     assert_equal 1, RecordingStudioIdentity::Slots.children(identity, RecordingStudioIdentity::IMAGE_TYPE).count
 
-    text = ActiveStorage::Blob.create_and_upload!(
-      io: StringIO.new("hello"), filename: "notes.txt", content_type: "text/plain"
-    )
+    text = issued_blob(identity, "notes.txt", content_type: "text/plain", body: "hello")
     assert_raises(RecordingStudioIdentity::ImageRejected) do
-      RecordingStudioIdentity.set_image(identity, signed_blob_id: text.signed_id, actor: @actor)
+      RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id_for(text), actor: @actor)
     end
 
     RecordingStudioIdentity.remove_image(identity, actor: @actor)
@@ -202,9 +199,8 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   test "trashing an identity trashes its image and restore brings it back" do
-    identity = RecordingStudioIdentity.create(
-      @workspace, actor: @actor, kind: "person", name: "Ada", signed_blob_id: png_blob.signed_id
-    )
+    identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
+    RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
     identity.recording_studio_trashable_trash!(actor: @actor)
     assert_nil RecordingStudioIdentity.image(identity)
 
@@ -258,6 +254,23 @@ class IdentitiesApiTest < ActiveSupport::TestCase
     ActiveStorage::Blob.create_and_upload!(
       io: StringIO.new(TINY_PNG), filename: filename, content_type: "image/png"
     )
+  end
+
+  def issued_blob(recording, filename = "portrait.png", content_type: "image/png", body: TINY_PNG)
+    ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new(body),
+      filename: filename,
+      content_type: content_type,
+      metadata: RecordingStudioAttachable::DirectUpload.metadata_for(recording: recording, actor: @actor)
+    )
+  end
+
+  def issued_signed_id(recording, filename = "portrait.png")
+    issued_signed_id_for(issued_blob(recording, filename))
+  end
+
+  def issued_signed_id_for(blob)
+    blob.signed_id(purpose: RecordingStudioAttachable::DirectUpload::PURPOSE)
   end
 end
 

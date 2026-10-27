@@ -2,10 +2,7 @@
 
 module RecordingStudioIdentity
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
-    include RecordingStudio::UsesDefaultLayout
-
-    layout "recording_studio/default_layout"
-    helper RecordingStudio::LayoutHelper
+    recording_studio_layout { RecordingStudioIdentity.configuration.layout }
     helper RecordingStudioIdentity::IdentitiesHelper
 
     protect_from_forgery with: :exception

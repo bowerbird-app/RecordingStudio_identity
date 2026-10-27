@@ -6,6 +6,28 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.4.0] - 2026-10-27
+
+### Upgrade notes
+
+Recording Studio Identity 0.4.0 requires Recording Studio `>= 6.1.0`. The `< 5` cap is gone. FlatPack stays `>= 0.1.320`. Accessible is `>= 0.22.0`, Attachable is `>= 0.22.0`, and Trashable is `>= 0.12.0`. ViewComponent stays on `>= 4.14, < 5` through FlatPack. No database migration runs for 0.3.0 to 0.4.0.
+
+`RecordingStudio::UsesDefaultLayout`, `layout "recording_studio/default_layout"`, and `recording_studio_page_nav` are gone. Set `config.layout` to `nil` for the Recording Studio default layout, `false` for no layout, a layout name, or a callable that takes `controller:`. Controllers read that setting with `recording_studio_layout`.
+
+Page headings are `content_for :title` and `content_for :subtitle`. The default layout renders one page title from those slots. Do not also render `FlatPack::PageTitle::Component` for the same heading. Back and close use `flat_pack_page_nav`. The index add button stays a default-style button in `recording_studio_page_nav_right`, not the page registry.
+
+The add and edit form is a two-column grid from the `md` breakpoint. The image, name, website, about, Save, and Cancel sit in column 1. The image uploader has no visible Image label. Its file input keeps an accessible name from the image alt text, or from FlatPack's choose label when the image is new. Cancel is a default-style button. Edit puts delete in the layout top-right slot as FlatPack's trash button, with `expand: :left`.
+
+Accessible 0.22.0 still declares Trashable `~> 0.10`, and root switchable 0.10.0, metrics 0.6.1, and cache 0.5.1 still declare Recording Studio 4.x. This repository widens those gemspec floors before Bundler resolves, so the dummy app can run Recording Studio 6.1.0 with Trashable 0.12.0. A host Gemfile that pins the same tags needs the same widen, or newer tags that already allow these versions.
+
+### Changed
+
+- Depend on Recording Studio 6.1.0 and the current Accessible, Attachable, and Trashable releases.
+- Resolve the page layout from `config.layout` instead of a hardcoded default layout.
+- Render one heading from `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. The add button stays in the layout top-right slot.
+- Place the image, name, website, about, Save, and Cancel in column 1 of the add and edit form. Omit the visible Image label. Use a default-style Cancel button.
+- Move edit's delete action to the layout top-right slot as FlatPack's trash button, expanding left.
+
 ## [0.3.0] - 2026-10-26
 
 ### Upgrade notes

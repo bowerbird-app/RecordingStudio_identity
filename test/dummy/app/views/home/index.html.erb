@@ -1,12 +1,10 @@
-<% dummy_page_nav(title: "Press profiles", back_url: root_path) %>
+<% dummy_page_nav(
+  title: "Press profiles",
+  subtitle: "One press profile, many press profiles, a nested parent, and configurable creation text.",
+  back_url: root_path
+) %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: "Press profiles",
-    subtitle: "One press profile, many press profiles, a nested parent, and configurable creation text.",
-    variant: :h1
-  ) %>
-
   <div class="grid gap-6 lg:grid-cols-2">
     <%= render "example",
           title: "One press profile",
