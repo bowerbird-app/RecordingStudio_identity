@@ -66,7 +66,6 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Name"
     assert_includes response.body, "Website"
     assert_includes response.body, "About"
-    assert_includes response.body, "Image"
     refute_includes response.body, "Company name"
     refute_includes response.body, "About the company"
     refute_includes response.body, "Company logo"
@@ -340,26 +339,32 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     layout = form.at_css("[data-identity-form-layout='columns']")
     refute_nil layout
     assert_includes layout["class"], "grid-cols-1"
-    assert_includes layout["class"], "md:grid-cols-[auto_1fr]"
-    columns = layout.element_children
-    assert_equal "image", columns[0]["data-identity-form-column"]
-    assert_equal "details", columns[1]["data-identity-form-column"]
-    assert columns[0].at_css("[data-testid='identity-image-field']")
-    assert columns[1].at_css("[name='identity[name]']")
-    assert columns[1].at_css("[name='identity[website_url]']")
-    assert columns[1].at_css("[name='identity[description]']")
-    assert_nil columns[1].at_css("[data-testid='identity-image-field']")
+    assert_includes layout["class"], "gap-6"
+    assert_includes layout["class"], "md:grid-cols-2"
+    column = layout.at_css("[data-identity-form-column='1']")
+    refute_nil column
+    assert_equal [column], layout.element_children.to_a
+    assert column.at_css("[data-testid='identity-image-field']")
+    assert column.at_css("[name='identity[name]']")
+    assert column.at_css("[name='identity[website_url]']")
+    assert column.at_css("[name='identity[description]']")
+    assert_empty field.css("label").map { |node| node.text.squish }.compact_blank
+    assert file_input["aria-label"].present?
+
+    cancel = column.css("a").find { |node| node.text.include?("Cancel") }
+    refute_nil cancel
+    assert_equal "default", cancel["data-fp-style"]
 
     fields = [
       field,
       form.at_css("[name='identity[name]']"),
       form.at_css("[name='identity[website_url]']"),
       form.at_css("[name='identity[description]']"),
-      form.css("button").find { |button| button.text.include?("Save") }
+      column.css("button").find { |button| button.text.include?("Save") }
     ]
     assert fields.all?
     assert_equal fields, fields.sort
-    assert_nil layout.css("button").find { |button| button.text.include?("Save") }
+    refute_nil column.css("button").find { |button| button.text.include?("Save") }
     refute_includes body, "You can add an image now or after the identity is saved."
     assert_nil document.at_css("form#remove-identity-image")
 

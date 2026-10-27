@@ -1,6 +1,5 @@
-<%# locals: (identity:, category:) %>
+<%# locals: (identity:) %>
 <% image = identity && RecordingStudioIdentity.image(identity) %>
-<% label = identity_field_label(category, :image) %>
 <% display_name = image && RecordingStudioIdentity.display_name(identity) %>
 <% src = image && authorized_attachment_preview_path(image, :square_med) %>
 <% alt = display_name && identity_t("image.alt", name: display_name) %>
@@ -8,7 +7,6 @@
   name: "image[file]",
   src: src,
   alt: alt,
-  label: label,
   shape: :circle,
   size: :xl,
   accept: identity_image_accept,
