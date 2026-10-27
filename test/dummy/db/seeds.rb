@@ -92,9 +92,14 @@ begin
     blob = ActiveStorage::Blob.create_and_upload!(
       io: StringIO.new(placeholder_image_png.call),
       filename: "sarah-jones.png",
-      content_type: "image/png"
+      content_type: "image/png",
+      metadata: RecordingStudioAttachable::DirectUpload.metadata_for(recording: sarah, actor: user)
     )
-    RecordingStudioIdentity.set_image(sarah, signed_blob_id: blob.signed_id, actor: user)
+    RecordingStudioIdentity.set_image(
+      sarah,
+      signed_blob_id: blob.signed_id(purpose: RecordingStudioAttachable::DirectUpload::PURPOSE),
+      actor: user
+    )
   end
   ensure_identity.call(agency_recording, kind: "company", name: "Northwind", description: "An independent agency")
   ensure_identity.call(agency_recording, kind: "brand", name: "Dove")

@@ -180,7 +180,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 4.7.1` and `< 5`, Accessible `~> 0.18`, Attachable `~> 0.15`, Trashable `~> 0.10`, and FlatPack `>= 0.1.320`. Recording Studio 4.7.1 is the layout that matches this FlatPack page nav.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. Recording Studio 6.1 supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`.
 
 ```bash
 bin/rails generate recording_studio_identity:install

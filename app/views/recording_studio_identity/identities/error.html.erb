@@ -1,3 +1,11 @@
-<% recording_studio_page_nav(title: @error_title, page_nav_back_url: identity_home_path, page_nav_back_label: identity_t("navigation.home")) %>
+<% content_for :title, @error_title %>
+<% if (home_path = identity_home_path) %>
+  <% flat_pack_page_nav(
+    round: true,
+    style: :default,
+    back_href: home_path,
+    back_tooltip: identity_t("navigation.home")
+  ) %>
+<% end %>
 
 <%= render FlatPack::Alert::Component.new(style: :danger, title: @error_title, description: @error_description) %>

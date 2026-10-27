@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "test/support/widen_recording_studio_requirement"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
@@ -87,6 +88,15 @@ end
 namespace :app do
   desc "Run all tests for the gem"
   task test: "test:all"
+end
+
+namespace :recording_studio do
+  desc "Fail when dummy app controllers hard-code layout \"recording_studio/...\""
+  task :check_layouts do
+    Dir.chdir(DUMMY_APP_ROOT) do
+      run_command!(dummy_bundle_env, "bundle", "exec", "rake", "recording_studio:check_layouts")
+    end
+  end
 end
 
 task default: :test

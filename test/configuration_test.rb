@@ -73,6 +73,7 @@ class ConfigurationTest < Minitest::Test
     assert_equal "Choose the type of press profile you'd like to create.", @configuration.creation.description
     assert_equal "Press profile", @configuration.to_h.fetch(:label)
     assert_equal "Press profiles", @configuration.to_h.fetch(:plural_label)
+    assert_nil @configuration.to_h.fetch(:layout)
   end
 
   def test_blank_labels_fall_back_to_identity
@@ -129,6 +130,38 @@ class ConfigurationTest < Minitest::Test
     RecordingStudioIdentity.configure
 
     assert_kind_of RecordingStudioIdentity::Configuration, RecordingStudioIdentity.configuration
+  end
+
+  def test_layout_accepts_nil_strings_false_and_keyword_callables
+    assert_nil @configuration.layout
+
+    @configuration.layout = "admin"
+    assert_equal "admin", @configuration.layout
+
+    @configuration.layout = false
+    assert_equal false, @configuration.layout
+
+    @configuration.layout = nil
+    assert_nil @configuration.layout
+
+    callable = ->(controller:) { controller.class.name }
+    @configuration.layout = callable
+    assert_equal callable, @configuration.layout
+    assert_equal callable, @configuration.to_h.fetch(:layout)
+  end
+
+  def test_layout_rejects_values_recording_studio_will_not_resolve
+    [:application, 1, "", "  ", ->(controller) { controller }].each do |value|
+      error = assert_raises(ArgumentError) { @configuration.layout = value }
+      assert_match(/layout/, error.message)
+      assert_nil @configuration.layout
+    end
+  end
+
+  def test_merge_sets_layout
+    @configuration.merge!(layout: "focused")
+
+    assert_equal "focused", @configuration.layout
   end
 
   def test_removed_category_icon_alias_uses_a_flatpack_name

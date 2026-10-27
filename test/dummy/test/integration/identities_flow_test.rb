@@ -54,6 +54,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Choose the type of press profile you&#39;d like to create."
     assert_includes response.body, "Continue"
     assert_continue_spans_the_form(response.body)
+    assert_select "h1", count: 1, text: "Who is this press profile for?"
     assert_includes response.body, "Company"
     refute_includes response.body, "Company name"
 
@@ -61,6 +62,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Add press profile"
+    assert_select "h1", count: 1, text: "Add press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "Website"
     assert_includes response.body, "About"
@@ -102,6 +104,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Edit press profile"
+    assert_select "h1", count: 1, text: "Edit press profile"
     assert_includes response.body, "Name"
     assert_includes response.body, "About"
     refute_includes response.body, "Full name"
@@ -133,12 +136,13 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to recording_studio_identity.identity_path(identity)
     assert_equal original_blob_id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
 
+    replacement = issued_blob(identity)
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
-      image: { signed_blob_id: stale.signed_id, remove: "1", file: fixture_file("portrait.png") }
+      image: { signed_blob_id: issued_signed_id(replacement), remove: "1", file: fixture_file("portrait.png") }
     }
     assert_redirected_to recording_studio_identity.identity_path(identity)
-    assert_equal stale.id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
+    assert_equal replacement.id, RecordingStudioIdentity.image(identity.reload).recordable.file.blob.id
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer", website_url: "https://example.com" },
@@ -290,16 +294,21 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
   def assert_page_nav_add_action(body)
     document = Nokogiri::HTML(body)
-    nav = document.at_css("nav.flat-pack-page-nav")
-    refute_nil nav
-    action = nav.css("a").find { |node| node.text.include?("+ Press profile") }
+    headings = document.css("h1")
+    assert_equal 1, headings.size
+    assert_equal "Press profiles", headings.first.text.squish
+
+    action = document.css("a").find { |node| node.text.include?("+ Press profile") }
     refute_nil action
     assert_equal "default", action["data-fp-style"]
     assert_empty action.xpath("ancestor::h1")
-    assert_empty action.xpath("preceding::h1")
-    heading = document.at_css("h1")
-    refute_nil heading
-    assert_nil heading.parent.css("a").find { |node| node.text.include?("+ Press profile") }
+    assert action.xpath("ancestor::header[contains(@class, 'fp-top-nav')]").any?
+    assert_empty action.xpath("ancestor::nav[contains(@class, 'flat-pack-page-nav')]")
+
+    page_nav = document.at_css("nav.flat-pack-page-nav")
+    refute_nil page_nav
+    assert_nil page_nav.css("a").find { |node| node.text.include?("+ Press profile") }
+    refute_nil page_nav.at_css("a[href='/']")
   end
 
   def assert_continue_spans_the_form(body)
@@ -371,6 +380,19 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     ActiveStorage::Blob.create_and_upload!(
       io: StringIO.new(tiny_png), filename: filename, content_type: "image/png"
     )
+  end
+
+  def issued_blob(recording, filename = "portrait.png")
+    ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new(tiny_png),
+      filename: filename,
+      content_type: "image/png",
+      metadata: RecordingStudioAttachable::DirectUpload.metadata_for(recording: recording, actor: @user)
+    )
+  end
+
+  def issued_signed_id(blob)
+    blob.signed_id(purpose: RecordingStudioAttachable::DirectUpload::PURPOSE)
   end
 
   def fixture_file(filename)

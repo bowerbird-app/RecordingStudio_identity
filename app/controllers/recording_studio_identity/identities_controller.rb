@@ -39,6 +39,7 @@ module RecordingStudioIdentity
     end
 
     def create
+      identity = nil
       identity = RecordingStudioIdentity.create(
         @parent,
         actor: current_identity_actor,
@@ -46,7 +47,14 @@ module RecordingStudioIdentity
         signed_blob_id: submitted_image_blob_id,
         **identity_params
       )
+      import_posted_image!(identity) if submitted_image_blob_id.blank?
       redirect_to identity_path(identity), notice: flash_was_added(identity), status: :see_other
+    rescue ImageRejected => e
+      if identity
+        redirect_to identity_path(identity), alert: user_message(e.message), status: :see_other
+      else
+        redirect_to new_recording_identity_path(@parent), alert: user_message(e.message), status: :see_other
+      end
     rescue Invalid => e
       @record = e.record
       @categories = RecordingStudioIdentity.categories
@@ -144,6 +152,19 @@ module RecordingStudioIdentity
       return if kind.blank?
 
       RecordingStudioIdentity.category(kind)
+    end
+
+    def import_posted_image!(identity)
+      return unless uploaded_image_file?
+
+      file = image_param[:file]
+      RecordingStudioIdentity.import_image(
+        identity,
+        io: file,
+        filename: file.original_filename,
+        content_type: file.content_type,
+        actor: current_identity_actor
+      )
     end
 
     def submitted_image_blob_id

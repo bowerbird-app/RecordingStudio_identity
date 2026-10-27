@@ -196,13 +196,13 @@ The `gem_template` helper provides access to all engine routes.
 
 ## RecordingStudio Host-App Check
 
-This template's dummy app uses RecordingStudio `v4.7.1` (`>= 4.7.1, < 5` in the gemspec). Keep
+This gem's dummy app uses RecordingStudio `v6.1.0` (`>= 6.1.0` in the gemspec). Keep
 `config.require_recordable_declarations = true`, declare every configured recordable with
 `recording_studio_recordable(...)`, and create roots with `RecordingStudio.root_recording_for(recordable)`.
 Child recordings must be created with an explicit `parent_recording`.
 
-When Accessible is bundled, pin the dummy or host Gemfile to `v0.18.0`, pin
-`recording_studio_trashable` to `v0.11.0` with `require: false` (Accessible loads the
+When Accessible is bundled, pin the dummy or host Gemfile to `v0.22.0`, pin
+`recording_studio_trashable` to `v0.12.0` with `require: false` (Accessible loads the
 query helpers only), run `bin/rails generate recording_studio_accessible:migrations`,
 migrate, and rebuild Tailwind after bumping FlatPack (`v0.1.196`). Accessible `0.11.0+`
 stores access roles as strings (`view` / `edit` / `admin`); hosts upgrading past that

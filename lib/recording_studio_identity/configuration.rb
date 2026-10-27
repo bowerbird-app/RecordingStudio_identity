@@ -2,7 +2,7 @@
 
 module RecordingStudioIdentity
   class Configuration
-    attr_reader :hooks, :categories
+    attr_reader :hooks, :categories, :layout
     attr_writer :label, :plural_label
 
     def initialize
@@ -11,6 +11,11 @@ module RecordingStudioIdentity
       @creation_overrides = {}
       @label = nil
       @plural_label = nil
+      @layout = nil
+    end
+
+    def layout=(value)
+      @layout = RecordingStudio::Layout.accept(value)
     end
 
     def terminology
@@ -53,14 +58,12 @@ module RecordingStudioIdentity
 
     def to_h
       {
-        label: label, plural_label: plural_label,
+        label: label,
+        plural_label: plural_label,
         types: categories.map(&:key),
-        creation: {
-          title: creation.title,
-          description: creation.description,
-          continue_label: creation.continue_label
-        },
-        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
+        creation: creation.to_h,
+        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size),
+        layout: layout
       }
     end
 

@@ -46,10 +46,10 @@ module RecordingStudioIdentity
       RecordingStudioIdentity.category_for(identity)&.label || identity.recordable.kind
     end
 
-    def identity_image_form_data(auto_submit: false)
+    def identity_image_form_data(auto_submit: false, identity: nil)
       options = identity_image_upload_options
       values = {
-        direct_upload_url: main_app.rails_direct_uploads_path,
+        direct_upload_url: identity && recording_studio_attachable.recording_direct_uploads_path(identity),
         signed_blob_field_name: "image[signed_blob_id]",
         auto_submit: auto_submit,
         **options.except(:allowed_content_types)
@@ -64,8 +64,8 @@ module RecordingStudioIdentity
       Array(identity_image_upload_options[:allowed_content_types]).join(",")
     end
 
-    def identity_form_data(include_image:, unsaved_changes:)
-      upload = include_image ? identity_image_form_data(auto_submit: false) : {}
+    def identity_form_data(include_image:, unsaved_changes:, identity: nil)
+      upload = include_image ? identity_image_form_data(auto_submit: false, identity: identity) : {}
       controllers = [("flat-pack--unsaved-changes" if unsaved_changes), upload.delete(:controller)].compact
       actions = [upload.delete(:action)].compact
       upload[:controller] = controllers.join(" ") if controllers.any?

@@ -3,7 +3,7 @@
 <%= form_with url: url,
       method: form_method,
       class: "flex max-w-3xl flex-col gap-6",
-      data: identity_form_data(include_image: include_image, unsaved_changes: unsaved_changes) do %>
+      data: identity_form_data(include_image: include_image, unsaved_changes: unsaved_changes, identity: identity) do %>
   <% if idempotency_key %>
     <%= hidden_field_tag :idempotency_key, idempotency_key, id: nil %>
   <% end %>

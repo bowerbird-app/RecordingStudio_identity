@@ -125,8 +125,6 @@ module RecordingStudioIdentity
       registered = RecordingStudio.configuration.recordable_types.map(&:to_s)
       needed = [
         IMAGE_TYPE,
-        "RecordingStudioAttachable::Library",
-        "RecordingStudioAttachable::Placement",
         IDENTITY_TYPE
       ]
       RecordingStudio.configuration.recordable_types = (registered + needed).uniq
