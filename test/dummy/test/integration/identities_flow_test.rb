@@ -76,6 +76,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "attachment-revision-upload#fileSelected"
     refute_includes response.body, "Upload image"
     assert_identity_form_order(response.body, removable: false)
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
   end
 
   test "creating from the details form shows the identity and omits empty fields" do
@@ -114,6 +115,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Change image"
     refute_includes response.body, "identity[kind]"
     assert_identity_form_order(response.body, removable: true)
+    assert_edit_trash_button(response.body, identity)
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer and creator", website_url: "https://example.com" }
@@ -310,6 +312,23 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_nil page_nav.at_css("a[href='/']")
   end
 
+  def assert_edit_trash_button(body, identity)
+    document = Nokogiri::HTML(body)
+    slot = document.at_css(".fp-top-nav__right")
+    refute_nil slot
+    control = slot.at_css("[data-controller~='flat-pack--trash-button']")
+    refute_nil control
+    assert_equal "left", control["data-fp-expand"]
+    form = control.at_css("form")
+    refute_nil form
+    assert_equal recording_studio_identity.identity_path(identity), form["action"]
+    method = form.at_css("input[name='_method']")
+    refute_nil method
+    assert_equal "delete", method["value"]
+    assert_nil document.at_css("#delete-identity")
+    assert_nil document.at_css("[data-identity-form-column='1'] #delete-identity")
+  end
+
   def assert_continue_spans_the_form(body)
     document = Nokogiri::HTML(body)
     form = document.at_css("form")
@@ -367,6 +386,8 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_nil column.css("button").find { |button| button.text.include?("Save") }
     refute_includes body, "You can add an image now or after the identity is saved."
     assert_nil document.at_css("form#remove-identity-image")
+    assert_nil document.at_css("#delete-identity")
+    assert_nil column.css("button").find { |button| button.text.strip == "Delete" }
 
     clear = field.at_css("button[aria-label='Remove image']")
     refute_nil clear

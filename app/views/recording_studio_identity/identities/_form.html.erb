@@ -1,4 +1,4 @@
-<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, delete_url: nil, identity: nil, include_image: false) %>
+<%# locals: (record:, category:, url:, form_method:, submit_text:, cancel_url:, idempotency_key: nil, unsaved_changes: false, identity: nil, include_image: false) %>
 <% limits = RecordingStudioIdentity::Identity::LIMITS %>
 <%= form_with url: url,
       method: form_method,
@@ -68,20 +68,7 @@
           style: :default,
           href: cancel_url
         ) %>
-        <% if delete_url %>
-          <%= render FlatPack::Button::Component.new(
-            text: identity_t("actions.delete"),
-            style: :danger,
-            type: "submit",
-            form: "delete-identity",
-            class: "ml-auto"
-          ) %>
-        <% end %>
       </div>
     </div>
   </div>
-<% end %>
-<% if delete_url %>
-  <%= form_with url: delete_url, method: :delete, id: "delete-identity", class: "hidden" do %>
-  <% end %>
 <% end %>

@@ -6,6 +6,13 @@
   back_href: identity_path(@identity),
   back_tooltip: identity_t("navigation.back")
 ) %>
+<% recording_studio_page_nav_right do %>
+  <%= render FlatPack::TrashButton::Component.new(
+    url: identity_path(@identity),
+    method: :delete,
+    expand: :left
+  ) %>
+<% end %>
 
 <div class="flex w-full flex-col gap-6">
   <%= render "form",
@@ -17,6 +24,5 @@
         submit_text: identity_t("actions.save"),
         cancel_url: identity_path(@identity),
         unsaved_changes: true,
-        delete_url: identity_path(@identity),
         include_image: true %>
 </div>
