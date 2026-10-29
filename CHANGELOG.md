@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.4.1] - 2026-10-29
+
+### Changed
+
+- Replace leftover GemTemplate names in Copilot and agent instructions with Recording Studio Identity.
+- Rename the gemspec Recording Studio pin test so the method name matches `>= 6.1.0`.
+
 ## [0.4.0] - 2026-10-27
 
 ### Upgrade notes

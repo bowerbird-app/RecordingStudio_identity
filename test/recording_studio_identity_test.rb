@@ -4,14 +4,14 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.0", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.4.1", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioIdentity::Engine
   end
 
-  def test_gemspec_pins_recording_studio_4_2
+  def test_gemspec_pins_recording_studio_6_1
     gemspec = File.read(File.expand_path("../recording_studio_identity.gemspec", __dir__))
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
