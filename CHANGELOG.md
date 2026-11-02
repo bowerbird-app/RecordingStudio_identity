@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [Unreleased]
+
+### Changed
+
+- Dummy Sign out uses FlatPack Button `href:` so the control is a Turbo DELETE link, not a dead `<button url>`. Engine `TrashButton url:` is unchanged.
+
 ## [0.4.1] - 2026-10-29
 
 ### Changed

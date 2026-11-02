@@ -15,6 +15,14 @@ class PageNavTest < ActionDispatch::IntegrationTest
     @studio = RecordingStudio::Recording.find_by!(recordable: Workspace.find_by!(name: "Studio Workspace"))
   end
 
+  test "home sign out is a Turbo DELETE link" do
+    get root_path
+
+    assert_response :success
+    assert_select "a[href='/users/sign_out'][data-turbo-method=delete]", text: "Sign out"
+    assert_select "button[url='/users/sign_out']", count: 0
+  end
+
   test "index puts add in the layout right slot and back in the page nav" do
     get recording_studio_identity.recording_identities_path(@agency)
 
