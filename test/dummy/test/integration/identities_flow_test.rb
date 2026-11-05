@@ -237,6 +237,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes html, "Sarah Jones"
     assert_includes html, "https://example.com"
     assert_includes html, "data-recording-studio-identity-card"
+    assert_includes html, "fp-card"
   end
 
   private
@@ -373,6 +374,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     cancel = column.css("a").find { |node| node.text.include?("Cancel") }
     refute_nil cancel
     assert_equal "default", cancel["data-fp-style"]
+    refute_nil column.at_css(".fp-button-group-menu")
 
     fields = [
       field,
