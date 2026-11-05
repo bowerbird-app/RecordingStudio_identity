@@ -8,6 +8,7 @@ This Rails app hosts RecordingStudioIdentity so identity screens can run inside 
 - `Current.actor` wiring for Recording Studio events
 - A workspace that holds one press profile, an agency that holds many, and a project nested under a workspace. The dummy initializer names them press profiles and asks "Who is this press profile for?" on the category screen.
 - Recording Studio default layout, FlatPack assets, and Tailwind source scanning
+- GitHub pins for Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, and FlatPack `v0.1.341`
 - Mounted `RecordingStudio::Engine` and `RecordingStudioIdentity::Engine`
 - Dummy docs for install, configuration, and the public API
 

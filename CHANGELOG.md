@@ -6,10 +6,25 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
-## [Unreleased]
+## [0.4.2] - 2026-11-05
+
+### Upgrade notes
+
+Recording Studio Identity 0.4.2 keeps the gemspec floors at Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. Public `RecordingStudio::Hooks` on configuration is unchanged. Hosts should refresh development pins to Recording Studio `v6.3.0`, FlatPack `v0.1.341`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, and Root Switchable `v0.11.5`, then lock Rails `8.1.4.1` with rack `>= 3.2.8`, nokogiri `>= 1.19.5`, loofah `>= 2.25.3`, and rails-html-sanitizer `>= 1.7.2`. Accessible `0.24.1` and Root Switchable `0.11.5` already allow those floors, so the dummy Gemfile no longer widens gemspecs at Bundler load.
+
+`config.layout` is still registered through `Layout.accept`. Leave it `nil` for Recording Studio's default layout. Identity cards render FlatPack `Card` (`background`, `border`, `shadow`). Save and Cancel on add and edit sit in a FlatPack `ButtonGroup` with `collapse: :menu`. Category radio tiles on choose are unchanged.
+
+Dummy Sign out uses FlatPack Button `href:` so the control is a Turbo DELETE link, not a dead `<button url>`. Engine `TrashButton url:` is unchanged.
+
+The leftover template documentation directory and `MIGRATION_NOTES.md` are gone. They were leftover template files, not product docs.
 
 ### Changed
 
+- Pin the dummy and development Gemfiles to Recording Studio 6.3.0 and the current Accessible, Trashable, Metrics, Cache, Root Switchable, and FlatPack tags.
+- Lock Rails 8.1.4.1 and the audited rack, nokogiri, loofah, and rails-html-sanitizer floors in both lockfiles.
+- Render identity cards with FlatPack Card and wrap Save and Cancel in a collapsing ButtonGroup.
+- Drop the Bundler gemspec-widen shim now that Accessible 0.24.1 and Root Switchable 0.11.5 resolve against Recording Studio 6.3.0 and Trashable 0.12.2.
+- Remove leftover template documentation and `MIGRATION_NOTES.md`.
 - Dummy Sign out uses FlatPack Button `href:` so the control is a Turbo DELETE link, not a dead `<button url>`. Engine `TrashButton url:` is unchanged.
 
 ## [0.4.1] - 2026-10-29

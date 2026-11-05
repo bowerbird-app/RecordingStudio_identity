@@ -56,19 +56,23 @@
         ) %>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <%= render FlatPack::Button::Component.new(
-          text: submit_text,
-          style: unsaved_changes ? :default : :primary,
-          type: "submit",
-          data: identity_submit_data(include_image: include_image, unsaved_changes: unsaved_changes)
+      <%= render FlatPack::ButtonGroup::Component.new(collapse: :menu) do |group| %>
+        <% group.button(
+          FlatPack::Button::Component.new(
+            text: submit_text,
+            style: unsaved_changes ? :default : :primary,
+            type: "submit",
+            data: identity_submit_data(include_image: include_image, unsaved_changes: unsaved_changes)
+          )
         ) %>
-        <%= render FlatPack::Button::Component.new(
-          text: identity_t("actions.cancel"),
-          style: :default,
-          href: cancel_url
+        <% group.button(
+          FlatPack::Button::Component.new(
+            text: identity_t("actions.cancel"),
+            style: :default,
+            href: cancel_url
+          )
         ) %>
-      </div>
+      <% end %>
     </div>
   </div>
 <% end %>

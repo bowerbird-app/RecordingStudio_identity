@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.1", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.4.2", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
@@ -49,26 +49,30 @@ class RecordingStudioIdentityTest < Minitest::Test
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"'
     refute_includes gemfile, 'tag: "v4.7.1"'
     refute_includes gemfile, 'tag: "v4.7.0"'
     refute_includes gemfile, 'tag: "v4.6.0"'
     refute_includes gemfile, 'tag: "v4.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.22.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.22.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.0", require: false'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2", require: false'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
     refute_includes gemfile, 'tag: "v0.17.0"'
     refute_includes gemfile, 'tag: "v0.10.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.10.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.6.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.5"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
     refute_includes gemfile, 'tag: "v0.9.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.2"'
     refute_includes gemfile, 'tag: "v0.6.0"'
     refute_includes gemfile, 'tag: "v0.5.0"'
     assert_includes gemfile, 'gem "net-ssh", ">= 7.3.5"'
-    assert_includes gemfile, "widen_recording_studio_requirement"
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.320"'
+    refute_includes gemfile, "widen_recording_studio_requirement"
+    refute_includes File.read(File.expand_path("dummy/config/boot.rb", __dir__)), "widen_recording_studio_requirement"
+    refute_includes File.read(File.expand_path("../Gemfile", __dir__)), "widen_recording_studio_requirement"
+    refute_includes File.read(File.expand_path("../Rakefile", __dir__)), "widen_recording_studio_requirement"
+    refute File.exist?(File.expand_path("support/widen_recording_studio_requirement.rb", __dir__))
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
     refute_includes gemfile, 'tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v4.4.0"'
@@ -132,6 +136,8 @@ class RecordingStudioIdentityTest < Minitest::Test
     refute File.exist?(File.expand_path("../lib/recording_studio_identity/hooks.rb", __dir__))
     refute File.exist?(File.expand_path("../lib/recording_studio_identity/services/base_service.rb", __dir__))
     refute File.exist?(File.expand_path("../lib/recording_studio_identity/services/example_service.rb", __dir__))
+    refute File.exist?(File.expand_path("../MIGRATION_NOTES.md", __dir__))
+    refute File.exist?(File.expand_path("../docs/#{%w[gem template].join('_')}", __dir__))
   end
 
   def test_identities_capability_requires_allow_and_is_not_enabled_on_folder
