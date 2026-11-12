@@ -8,8 +8,8 @@ This Rails app hosts RecordingStudioIdentity so identity screens can run inside 
 - `Current.actor` wiring for Recording Studio events
 - A workspace that holds one press profile, an agency that holds many, and a project nested under a workspace. The dummy initializer names them press profiles and asks "Who is this press profile for?" on the category screen.
 - Recording Studio default layout, FlatPack assets, and Tailwind source scanning
-- GitHub pins for Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, and FlatPack `v0.1.341`
-- Mounted `RecordingStudio::Engine` and `RecordingStudioIdentity::Engine`
+- GitHub pins for Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, FlatPack `v0.1.341`, and Recording Studio API `v0.21.3`
+- Mounted `RecordingStudio::Engine`, `RecordingStudioIdentity::Engine`, and Recording Studio API at `/recording_studio_api`
 - Dummy docs for install, configuration, and the public API
 
 ## Quick Start
@@ -33,6 +33,7 @@ Then open the app and sign in with:
 - `/` - identity examples for one parent, many parents, a nested parent, and creation text
 - `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
 - `/recording_studio_identity` - identity screens
+- `/recording_studio_api/api/v1/identities` - JSON identity resource (pass `parent_id` to list or create)
 - `/users/sign_in` - Devise sign-in page
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - dummy docs for this gem
 - `/up` - Rails health check

@@ -6,6 +6,20 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.5.0] - 2026-11-12
+
+### Added
+
+- Identity index, show, create, and update on Recording Studio API, with custom handlers that call `RecordingStudioIdentity.identities`, `.find`, `.create`, and `.update`.
+- `set_image` and `remove_image` API capability actions (`:edit`), the same writes as the identity screens.
+- Dummy mounts Recording Studio API so hosts and MCP adapters can use the same Accessible-gated surface.
+
+### Upgrade notes
+
+Pin `v0.5.0`. There is no identity migration. Hosts that already have Recording Studio API get identities when this gem loads. Install and mount API (and MCP, if you use it) as those gems document. Trash, restore, attach, import image, and hard destroy stay off this resource. Index paginates. `kind` is required on create and cannot change on update. `set_image` and `remove_image` need `:attachable` on Identity, which this gem already enables.
+
+Dummy and development apps pin Recording Studio API `v0.21.3`, with Admin `v2.12.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0` so Bundler can resolve and boot the API gem.
+
 ## [0.4.2] - 2026-11-05
 
 ### Upgrade notes
