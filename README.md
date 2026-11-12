@@ -122,10 +122,10 @@ When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity
 | GET | `/recording_studio_api/api/v1/identities/:id` | `:view` on the identity |
 | POST | `/recording_studio_api/api/v1/identities` | `:edit` on the parent |
 | PATCH | `/recording_studio_api/api/v1/identities/:id` | `:edit` on the identity |
-| POST | `/recording_studio_api/api/v1/identities/:id/actions/set_image` | `:edit` on the identity |
-| POST | `/recording_studio_api/api/v1/identities/:id/actions/remove_image` | `:edit` on the identity |
+| POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_set_image` | `:edit` on the identity |
+| POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_remove_image` | `:edit` on the identity |
 
-`parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`. `set_image` takes `signed_blob_id`. `set_image` and `remove_image` are registered under capability `:attachable`. Trash, restore, attach, import image, and hard destroy stay off this resource.
+`parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`. `identity_set_image` takes `signed_blob_id`. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource.
 
 Install Recording Studio API in the host if you want the JSON surface:
 

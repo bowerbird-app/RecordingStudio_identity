@@ -23,3 +23,8 @@ RecordingStudio.register_capability(
   source: "recording_studio_identity",
   child_recordables: [RecordingStudioIdentity::IDENTITY_TYPE]
 )
+
+RecordingStudio.register_capability(
+  :identity_image,
+  source: "recording_studio_identity"
+)

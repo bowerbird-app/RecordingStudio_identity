@@ -21,4 +21,4 @@ pin_all_from RecordingStudioAttachable::Engine.root.join("app/javascript/control
 6. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
 7. Mount routes are added at the configured mount path. Adjust auth, layout, and current actor integration to match your host app.
 8. Keep strict recordable declarations enabled and add `recording_studio_recordable(...)` to every configured recordable before running `RecordingStudio.validate_recordable_declarations!`.
-9. Optional: install and mount Recording Studio API. This gem then registers identities, `set_image`, and `remove_image`. MCP uses that same API. Turn on `:api_access_point` on roots that hold API clients.
+9. Optional: install and mount Recording Studio API. This gem then registers identities, `identity_set_image`, and `identity_remove_image`. MCP uses that same API. Turn on `:api_access_point` on roots that hold API clients.

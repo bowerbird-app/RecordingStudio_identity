@@ -31,7 +31,7 @@ module RecordingStudioIdentity
     def type_options(api)
       {
         api:, operations: %i[index show create update], auto_capability_actions: false,
-        capability_actions: %i[set_image remove_image], serializer: method(:serialize_fields),
+        capability_actions: %i[identity_set_image identity_remove_image], serializer: method(:serialize_fields),
         output_keys: FIELDS, writable_attributes: FIELDS, immutable_fields: %i[kind],
         openapi: openapi_docs
       }

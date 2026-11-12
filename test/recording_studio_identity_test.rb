@@ -213,7 +213,10 @@ class RecordingStudioIdentityTest < Minitest::Test
     initializer_source = File.read(initializer_path)
 
     assert_includes initializer_source, "config.require_recordable_declarations = true"
-    assert_includes initializer_source, '"Workspace", "Folder", "Page", "Agency", "Project"'
+    assert_includes(
+      initializer_source,
+      "config.recordable_types = [ \"Workspace\", \"Folder\", \"Page\", \"Agency\", \"Project\" ]"
+    )
     assert_includes initializer_source, "RecordingStudioApi::AdminApi"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."

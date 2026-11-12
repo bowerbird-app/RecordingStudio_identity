@@ -53,18 +53,42 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_equal "Mathematician", RecordingStudioIdentity.find(identity_id).recordable.description
   end
 
-  test "set_image and remove_image are edit capability actions" do
+  test "identity_set_image and identity_remove_image are edit capability actions" do
     identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
     blob_id = signed_png_id(identity)
 
-    set = call(:post, "/identities/#{identity.id}/actions/set_image", @editor_token, signed_blob_id: blob_id)
+    set = call(:post, "/identities/#{identity.id}/actions/identity_set_image", @editor_token, signed_blob_id: blob_id)
     assert_response :success, response.body
     assert RecordingStudioIdentity.image(identity.reload)
 
-    removed = call(:post, "/identities/#{identity.id}/actions/remove_image", @editor_token)
+    removed = call(:post, "/identities/#{identity.id}/actions/identity_remove_image", @editor_token)
     assert_response :success, response.body
     assert_nil RecordingStudioIdentity.image(identity.reload)
     assert_equal identity.id, removed.fetch("id")
+  end
+
+  test "index paginates identities with limit and pagination_token" do
+    first = RecordingStudioIdentity.create(@agency, actor: @owner, kind: "person", name: "Ada")
+    second = RecordingStudioIdentity.create(@agency, actor: @owner, kind: "brand", name: "Acme")
+    expected_ids = [first.id, second.id].sort
+    agency_token, = token_for(@agency_editor_access)
+
+    page = call(:get, "/identities", agency_token, parent_id: @agency.id, limit: 1)
+    assert_response :success, response.body
+    seen = page.fetch("records").map { |record| record.fetch("id") }
+    assert_equal 1, seen.size
+    token = page.fetch("meta").fetch("next_pagination_token")
+    assert token.present?
+
+    while token.present?
+      page = call(:get, "/identities", agency_token, parent_id: @agency.id, limit: 1, pagination_token: token)
+      assert_response :success, response.body
+      seen.concat(page.fetch("records").map { |record| record.fetch("id") })
+      token = page.fetch("meta")["next_pagination_token"]
+    end
+
+    assert_equal expected_ids, seen.sort
+    assert_equal expected_ids.size, seen.size
   end
 
   test "view can read and is forbidden from writes" do
@@ -82,10 +106,13 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     call(:patch, "/identities/#{identity.id}", @viewer_token, description: "Nope")
     assert_response :forbidden, response.body
 
-    call(:post, "/identities/#{identity.id}/actions/set_image", @viewer_token, signed_blob_id: signed_png_id(identity))
+    call(
+      :post, "/identities/#{identity.id}/actions/identity_set_image", @viewer_token,
+      signed_blob_id: signed_png_id(identity)
+    )
     assert_response :forbidden, response.body
 
-    call(:post, "/identities/#{identity.id}/actions/remove_image", @viewer_token)
+    call(:post, "/identities/#{identity.id}/actions/identity_remove_image", @viewer_token)
     assert_response :forbidden, response.body
   end
 
@@ -113,18 +140,39 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
   test "identity api registration matches ui roles and skips trash attach helpers" do
     registration = RecordingStudioApi.recordable_registration_for("RecordingStudioIdentity::Identity")
     assert_equal %i[create index show update], registration.operations
-    assert_equal %w[remove_image set_image], registration.capability_actions
+    assert_equal %w[identity_remove_image identity_set_image], registration.capability_actions
     assert_equal false, registration.auto_capability_actions
     assert_includes registration.immutable_fields, "kind"
 
-    set_image = RecordingStudioApi.capability_action(:set_image)
-    remove_image = RecordingStudioApi.capability_action(:remove_image)
+    set_image = RecordingStudioApi.capability_action(:identity_set_image)
+    remove_image = RecordingStudioApi.capability_action(:identity_remove_image)
     assert_equal :edit, set_image.required_role
     assert_equal :edit, remove_image.required_role
-    assert_equal :attachable, set_image.capability
+    assert_equal :identity_image, set_image.capability
+    assert_equal :identity_image, remove_image.capability
     assert_equal RecordingStudioIdentity::Api::IdentityResource::Index,
                  RecordingStudioApi.resource_handler("RecordingStudioIdentity::Identity", :index)
     assert_equal RecordingStudioIdentity::Identity::CREATE_FIELDS, RecordingStudioIdentity::Api::FIELDS
+  end
+
+  test "identity image actions do not leak onto other attachable api types" do
+    unless RecordingStudio.capability_enabled?(:attachable, for: "Page")
+      RecordingStudio.enable_capability(:attachable, on: Page)
+    end
+    unless RecordingStudioApi.recordable_registration_for("Page")
+      RecordingStudioApi.register_recordable_type_api(
+        "Page",
+        operations: %i[index show],
+        serializer: ->(page, **) { { title: page.title } },
+        output_keys: %i[title]
+      )
+    end
+
+    assert RecordingStudio.capability_enabled?(:attachable, for: "Page")
+    assert RecordingStudioApi.recordable_registration_for("Page")
+    page_actions = RecordingStudioApi.capability_actions_for("Page").map(&:name)
+    refute_includes page_actions, "identity_set_image"
+    refute_includes page_actions, "identity_remove_image"
   end
 
   private

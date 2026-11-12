@@ -15,7 +15,7 @@ Image upload needs Attachable and these importmap pins:
       to: "controllers/recording_studio_attachable",
       preload: false
 
-Optional: install Recording Studio API so identity index, show, create, update, set_image, and remove_image are available over JSON and MCP.
+Optional: install Recording Studio API so identity index, show, create, update, identity_set_image, and identity_remove_image are available over JSON and MCP.
 
 To use the engine:
 1. Start your Rails server

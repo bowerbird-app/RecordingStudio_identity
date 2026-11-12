@@ -11,12 +11,12 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 ### Added
 
 - Identity index, show, create, and update on Recording Studio API, with custom handlers that call `RecordingStudioIdentity.identities`, `.find`, `.create`, and `.update`.
-- `set_image` and `remove_image` API capability actions (`:edit`), the same writes as the identity screens.
+- `identity_set_image` and `identity_remove_image` API capability actions (`:edit`), the same writes as the identity screens. They sit on Identity's `:identity_image` capability, not attachable, so other Attachable types do not get them.
 - Dummy mounts Recording Studio API so hosts and MCP adapters can use the same Accessible-gated surface.
 
 ### Upgrade notes
 
-Pin `v0.5.0`. There is no identity migration. Hosts that already have Recording Studio API get identities when this gem loads. Install and mount API (and MCP, if you use it) as those gems document. Trash, restore, attach, import image, and hard destroy stay off this resource. Index paginates. `kind` is required on create and cannot change on update. `set_image` and `remove_image` need `:attachable` on Identity, which this gem already enables.
+Pin `v0.5.0`. There is no identity migration. Hosts that already have Recording Studio API get identities when this gem loads. Install and mount API (and MCP, if you use it) as those gems document. Trash, restore, attach, import image, and hard destroy stay off this resource. Index paginates. `kind` is required on create and cannot change on update. Image writes use `identity_set_image` and `identity_remove_image`. Recording Studio API 0.21.3 requires a member capability, so those actions use `:identity_image` on Identity. Identity still enables `:attachable` for the image files.
 
 Dummy and development apps pin Recording Studio API `v0.21.3`, with Admin `v2.12.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0` so Bundler can resolve and boot the API gem.
 

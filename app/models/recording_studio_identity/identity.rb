@@ -18,6 +18,7 @@ module RecordingStudioIdentity
     recording_studio_recordable label: "Identity", plural_label: "Identities", root: false
 
     include RecordingStudio::Capabilities::Trashable.to
+    include RecordingStudio::Capabilities.include_for(:identity_image)
     include RecordingStudio::Capabilities::Attachable.to(
       allowed_content_types: ["image/*"],
       enabled_attachment_kinds: [:image],
