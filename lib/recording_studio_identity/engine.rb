@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "api"
+
 module RecordingStudioIdentity
   class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioIdentity
@@ -147,6 +149,10 @@ module RecordingStudioIdentity
 
     initializer "recording_studio_identity.display_helper" do
       ActiveSupport.on_load(:action_view) { include RecordingStudioIdentity::DisplayHelper }
+    end
+
+    initializer "recording_studio_identity.api" do
+      config.to_prepare { Api.register! }
     end
   end
 end

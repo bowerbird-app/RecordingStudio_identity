@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.2", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.5.0", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
@@ -72,6 +72,11 @@ class RecordingStudioIdentityTest < Minitest::Test
     refute_includes File.read(File.expand_path("../Gemfile", __dir__)), "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("../Rakefile", __dir__)), "widen_recording_studio_requirement"
     refute File.exist?(File.expand_path("support/widen_recording_studio_requirement.rb", __dir__))
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.3"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.12.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
     refute_includes gemfile, 'tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
@@ -212,6 +217,7 @@ class RecordingStudioIdentityTest < Minitest::Test
       initializer_source,
       "config.recordable_types = [ \"Workspace\", \"Folder\", \"Page\", \"Agency\", \"Project\" ]"
     )
+    assert_includes initializer_source, "RecordingStudioApi::AdminApi"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."
     refute_includes initializer_source, "v3"
@@ -236,6 +242,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes readme, "config.plural_label"
     assert_includes readme, "allow: :one"
     assert_includes readme, "RecordingStudioIdentity.create"
+    assert_includes readme, "JSON API and MCP"
     refute_includes readme, %w[Gem Template].join
     refute_includes readme, %w[Recordingstudio Addon].join
     refute_includes readme, "dummy GitHub tag"

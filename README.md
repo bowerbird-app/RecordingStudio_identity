@@ -110,7 +110,32 @@ RecordingStudioIdentity.find(recording_id)
 RecordingStudioIdentity.update(identity_recording, actor:, name:, description:, website_url:)
 ```
 
-`update` uses `revise`. The recording id stays the same. An update that does not change name, description, or website URL does not write a revision.
+`update` uses `revise`. The recording id stays the same. An update that does not change name, description, or website URL does not write a revision. `kind` is not an update field.
+
+### JSON API and MCP
+
+When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity::Identity` on each configured API. MCP hosts that wrap that API get the same actions. Default API create is not used, because it would skip `RecordingStudioIdentity.create`.
+
+| Verb | Path | Accessible role |
+|---|---|---|
+| GET | `/recording_studio_api/api/v1/identities?parent_id=` | `:view` on the parent |
+| GET | `/recording_studio_api/api/v1/identities/:id` | `:view` on the identity |
+| POST | `/recording_studio_api/api/v1/identities` | `:edit` on the parent |
+| PATCH | `/recording_studio_api/api/v1/identities/:id` | `:edit` on the identity |
+| POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_set_image` | `:edit` on the identity |
+| POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_remove_image` | `:edit` on the identity |
+
+`parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`. `identity_set_image` takes `signed_blob_id`. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource.
+
+Install Recording Studio API in the host if you want the JSON surface:
+
+```sh
+bin/rails generate recording_studio_api:install
+bin/rails generate recording_studio_api:migrations
+bin/rails db:migrate
+```
+
+Turn on `:api_access_point` on roots that should hold API clients, and add `RecordingStudioApi::ApiClient` to `access_actor_types`. Recording Studio MCP needs no extra identity code.
 
 ```ruby
 RecordingStudioIdentity.categories
@@ -180,7 +205,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. The dummy app pins Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, and FlatPack `v0.1.341`, and locks Rails `8.1.4.1`. Recording Studio 6.1 or newer supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. The dummy app pins Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, FlatPack `v0.1.341`, and Recording Studio API `v0.21.3` (with Admin `v2.12.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0`), and locks Rails `8.1.4.1`. Recording Studio 6.1 or newer supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
 
 ```bash
 bin/rails generate recording_studio_identity:install
@@ -221,6 +246,7 @@ The dummy app at `test/dummy` signs in with `admin@admin.com` / `Password`.
 - Agency `Harbour Agency` holds many identities.
 - Project `Harbour fit-out` sits under the studio workspace and holds its own identities.
 - The agency create screen uses the configured title and continue label, and the category field labels. `creation.description` stays on the config object and is not shown on that screen.
+- Recording Studio API is mounted at `/recording_studio_api` for identity JSON and MCP.
 
 ## Tests
 
