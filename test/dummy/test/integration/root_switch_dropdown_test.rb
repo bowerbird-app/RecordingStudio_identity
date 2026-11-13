@@ -44,8 +44,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
     sign_in user
 
-    workspace = Workspace.create!(name: "Switch Page Workspace")
-    grant_view!(user, RecordingStudio.root_recording_for(workspace))
+    Workspace.create!(name: "Switch Page Workspace")
+    grant_visible_roots!(user)
 
     get "/recording_studio_root_switchable/v1/root_switch?scope=all_workspaces"
 
@@ -65,8 +65,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     source_workspace = Workspace.create!(name: "Source Workspace")
     target_workspace = Workspace.create!(name: "Target Workspace")
     target_root_recording = RecordingStudio.root_recording_for(target_workspace)
-    grant_view!(user, target_root_recording)
-    grant_view!(user, RecordingStudio.root_recording_for(source_workspace))
+    RecordingStudio.root_recording_for(source_workspace)
+    grant_visible_roots!(user)
 
     patch "/recording_studio_root_switchable/v1/root_switch", params: {
       scope: "all_workspaces",
@@ -90,8 +90,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     source_workspace = Workspace.create!(name: "Fallback Source Workspace")
     target_workspace = Workspace.create!(name: "Fallback Target Workspace")
     target_root_recording = RecordingStudio.root_recording_for(target_workspace)
-    grant_view!(user, target_root_recording)
-    grant_view!(user, RecordingStudio.root_recording_for(source_workspace))
+    RecordingStudio.root_recording_for(source_workspace)
+    grant_visible_roots!(user)
 
     patch "/recording_studio_root_switchable/v1/root_switch", params: {
       scope: "all_workspaces",
@@ -106,10 +106,31 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
 
   private
 
+  # The mounted switch page requires Accessible :view on the current root.
+  # db:prepare can leave seeded workspaces in the test database, and the
+  # scope's default root is the first of those, not the workspace this
+  # example just created.
+  def grant_visible_roots!(user)
+    Workspace.order(:name).find_each do |workspace|
+      grant_view!(user, RecordingStudio.root_recording_for(workspace))
+    end
+  end
+
   def grant_view!(user, root_recording)
     return if RecordingStudioAccessible.authorized?(actor: user, recording: root_recording, role: :view)
 
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: user)
-    raise result.error if result.failure?
+    return unless result.failure?
+
+    manager = User.find_by(email: "admin@admin.com")
+    raise result.error unless manager
+
+    granted = RecordingStudioAccessible.grant_access(
+      recording: root_recording,
+      actor: user,
+      role: :view,
+      manager_actor: manager
+    )
+    raise granted.error if granted.failure?
   end
 end
