@@ -54,16 +54,11 @@ previous_actor = Current.actor
 Current.actor = user
 
 begin
-  # Create the root recording
+  # Create the root recording, then grant :edit before child record! calls.
   root_recording = RecordingStudio.root_recording_for(workspace)
   accessible_root_recording = RecordingStudio.root_recording_for(accessible_workspace)
   private_root_recording = RecordingStudio.root_recording_for(private_workspace)
-
-  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
-
-  find_or_record_child.call(page, root_recording, folder_recording)
   agency_recording = RecordingStudio.root_recording_for(agency)
-  project_recording = find_or_record_child.call(project, root_recording, root_recording)
 
   [root_recording, accessible_root_recording, agency_recording].each do |recording|
     next if RecordingStudioAccessible.authorized?(actor: user, recording: recording, role: :edit)
@@ -71,6 +66,11 @@ begin
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: recording, actor: user)
     raise result.error if result.failure?
   end
+
+  folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
+
+  find_or_record_child.call(page, root_recording, folder_recording)
+  project_recording = find_or_record_child.call(project, root_recording, root_recording)
 
   ensure_identity = lambda do |parent, kind:, name:, **fields|
     existing = RecordingStudioIdentity.identities(parent, include_trashed: true).find do |identity|

@@ -28,12 +28,14 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
   test "allowed child can be recorded under a workspace root" do
     root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Child Workspace")))
     folder = Folder.new(name: unique_name("Allowed Folder"))
+    actor = writer_for(root_recording)
 
     event = RecordingStudio.record!(
       action: "created",
       recordable: folder,
       root_recording: root_recording,
-      parent_recording: root_recording
+      parent_recording: root_recording,
+      actor: actor
     )
 
     assert_equal folder, event.recording.recordable
@@ -102,8 +104,25 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
       action: "created",
       recordable: recordable,
       root_recording: root_recording,
-      parent_recording: parent_recording
+      parent_recording: parent_recording,
+      actor: writer_for(root_recording)
     ).recording
+  end
+
+  def writer_for(root_recording)
+    @writers ||= {}
+    @writers[root_recording.id] ||= begin
+      actor = User.create!(
+        email: "writer-#{SecureRandom.hex(4)}@example.com",
+        password: "Password123!",
+        password_confirmation: "Password123!"
+      )
+      Current.actor = actor
+      result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: actor)
+      raise result.error if result.failure?
+
+      actor
+    end
   end
 
   def unique_name(prefix)
