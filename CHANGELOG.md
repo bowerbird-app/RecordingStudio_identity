@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.5.1] - 2026-11-14
+
+### Upgrade notes
+
+The category screen renders FlatPack radio cards. That needs FlatPack `>= 0.1.362` (GitHub tag `v0.1.362`, not a RubyGems release). Pin that tag in the host Gemfile. Hosts that scan FlatPack components for Tailwind need one CSS rebuild so the card grid and selected-card classes are present. Do not rerun the FlatPack install generator. There is no identity migration.
+
+Radios stay `name="kind"`, required, and unselected until someone picks a category. An unknown `kind` still shows the danger alert and does not check a radio. The page heading, back link, and full-width Continue button are unchanged. The group legend repeats the creation title for screen readers.
+
+### Changed
+
+- Replace the hand-rolled category radios with `FlatPack::RadioGroup::Component` (`variant: :cards`, `align: :start`, `columns: 2`, `hide_label: true`).
+- Pin development and dummy FlatPack to `v0.1.362` and raise the gemspec floor to `>= 0.1.362`.
+
 ## [0.5.0] - 2026-11-12
 
 ### Added

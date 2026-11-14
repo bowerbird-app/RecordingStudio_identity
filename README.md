@@ -164,7 +164,7 @@ Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentF
 
 Routes are mounted with the engine. The default path is `/recording_studio_identity`.
 
-1. Category screen. Each configured category is a card with icon, label, and description. The heading and continue label come from `config.creation`. The screen does not show `creation.description`. Continue is full width, with space above it. Nothing is recorded on this step.
+1. Category screen. Each configured category is a FlatPack radio card (`variant: :cards`): the icon sits on the left, and the label and description are left-aligned. From the `sm` breakpoint the cards are two columns. The group legend is the creation title, for screen readers, because the page heading already shows it. Nothing is selected until someone picks a category. The heading and continue label come from `config.creation`. The screen does not show `creation.description`. Continue is full width, with space above it. Nothing is recorded on this step.
 2. Details screen. From the `md` breakpoint the form is a two-column grid. The image, name, website, about, Save, and Cancel sit in column 1. The image uploader has no visible label. The file input keeps an accessible name. Cancel is a default-style button. Field labels come from that category.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
@@ -205,7 +205,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. The dummy app pins Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, FlatPack `v0.1.341`, and Recording Studio API `v0.21.3` (with Admin `v2.12.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0`), and locks Rails `8.1.4.1`. Recording Studio 6.1 or newer supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.362`. The dummy app pins Recording Studio `v6.7.0`, Accessible `v0.32.0`, Attachable `v0.23.0`, Trashable `v0.14.0`, Metrics `v0.8.0`, Cache `v0.6.3`, Root Switchable `v0.15.0`, FlatPack `v0.1.362`, and Recording Studio API `v0.23.0` (with Admin `v2.13.0`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`), and locks Rails `8.1.4.1`. Recording Studio 6.1 or newer supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
 
 ```bash
 bin/rails generate recording_studio_identity:install

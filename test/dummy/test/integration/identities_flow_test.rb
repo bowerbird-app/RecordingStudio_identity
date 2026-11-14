@@ -57,6 +57,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_select "h1", count: 1, text: "Who is this press profile for?"
     assert_includes response.body, "Company"
     refute_includes response.body, "Company name"
+    assert_category_kind_radios(response.body)
 
     get recording_studio_identity.new_recording_identity_path(@agency, kind: "company")
 
@@ -215,6 +216,7 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_identity.new_recording_identity_path(@agency, kind: "mascot")
     assert_response :success
     assert_includes response.body, "Choose one of the configured categories."
+    assert_category_kind_radios(response.body)
 
     folder = RecordingStudio::Recording.find_by!(recordable: Folder.find_by!(name: "Product Docs"))
     get recording_studio_identity.recording_identities_path(folder)
@@ -328,6 +330,27 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_equal "delete", method["value"]
     assert_nil document.at_css("#delete-identity")
     assert_nil document.at_css("[data-identity-form-column='1'] #delete-identity")
+  end
+
+  def assert_category_kind_radios(body)
+    document = Nokogiri::HTML(body)
+    form = document.at_css("form[method='get']")
+    refute_nil form
+    legend = form.at_css("fieldset legend")
+    refute_nil legend
+    assert_equal "Who is this press profile for?", legend.text.squish
+    assert_includes legend["class"].to_s, "sr-only"
+    refute_includes legend["class"].to_s, "mb-2"
+
+    radios = form.css("input[type='radio'][name='kind']")
+    assert_equal %w[person company brand organisation], radios.map { |radio| radio["value"] }
+    radios.each do |radio|
+      assert_equal "required", radio["required"]
+      assert_nil radio["checked"]
+    end
+    assert_includes body, "sm:grid-cols-2"
+    assert_includes body, "justify-start"
+    refute_includes body, "peer-checked"
   end
 
   def assert_continue_spans_the_form(body)
