@@ -6,6 +6,21 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.6.0] - 2026-11-14
+
+### Changed
+
+- Live identity lists, lookups, image reads, and the identity screens use `RecordingStudio::Recording.kept`. `include_trashed: true` still reads the unfiltered relation, so a trashed identity keeps a `:one` slot until it is purged.
+- Require Recording Studio `>= 6.14.0` and Trashable `>= 0.16.0`. Development Gemfiles pin `v6.14.0` and `v0.16.0`.
+
+### Upgrade notes
+
+Pin `v0.6.0`. There is no identity migration. Hosts need Recording Studio `>= 6.14.0` and Trashable `>= 0.16.0`. Follow Recording Studio 6.14 for the events `root_recording_id` column. The dummy app copies that migration so it can write events on 6.14.
+
+`Recording.kept` applies every registered recording filter, not only trash. Restore, the in-trash screen, and the edit guard treat a recording that is missing from `Recording.kept` as trashed. Core has no loaded-record predicate, so those checks ask `Recording.kept.exists?`.
+
+Accessible 0.41, API 0.23, and Admin 2.13 still call `Recording.recording_studio_trashable_kept_sql`, which Trashable 0.16 removed. The dummy defines that method as `RecordingStudio.kept_sql` until those gems move. A host on those releases needs the same alias, or a newer release of those gems.
+
 ## [0.5.0] - 2026-11-12
 
 ### Added

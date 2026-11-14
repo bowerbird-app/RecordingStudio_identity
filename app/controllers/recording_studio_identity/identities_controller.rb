@@ -10,8 +10,8 @@ module RecordingStudioIdentity
     def index
       @allowance = RecordingStudioIdentity.allowance(@parent)
       if @allowance == :many
-        @trashed_identities, @identities =
-          RecordingStudioIdentity.identities(@parent, include_trashed: true).partition(&:trashed_at)
+        @identities = RecordingStudioIdentity.identities(@parent)
+        @trashed_identities = RecordingStudioIdentity.identities(@parent, include_trashed: true) - @identities
       else
         @identity = RecordingStudioIdentity.identity(@parent, include_trashed: true)
       end
@@ -68,7 +68,7 @@ module RecordingStudioIdentity
     def show; end
 
     def edit
-      raise Trashed.new(identity: @identity) if @identity.trashed_at
+      raise Trashed.new(identity: @identity) unless identity_kept?(@identity)
       unless identity_can?(:update, @identity)
         return redirect_to(identity_path(@identity), alert: flash_cant_edit(@identity))
       end
@@ -94,7 +94,7 @@ module RecordingStudioIdentity
     end
 
     def destroy
-      unless @identity.trashed_at
+      if identity_kept?(@identity)
         authorize_identity!(:trash, @identity)
         @identity.recording_studio_trashable_trash!(actor: current_identity_actor)
       end
@@ -103,7 +103,7 @@ module RecordingStudioIdentity
     end
 
     def restore
-      if @identity.trashed_at
+      unless identity_kept?(@identity)
         authorize_identity!(:restore, @identity)
         @identity.recording_studio_trashable_restore!(actor: current_identity_actor)
       end
@@ -131,10 +131,13 @@ module RecordingStudioIdentity
 
     private
 
+    def identity_kept?(recording)
+      helpers.identity_kept?(recording)
+    end
+
     def set_parent
-      @parent = RecordingStudio::Recording.unscoped.find_by(id: params[:recording_id])
-      return if @parent && @parent.trashed_at.nil? && RecordingStudioIdentity.allowance(@parent) &&
-                identity_can?(:view, @parent)
+      @parent = RecordingStudio::Recording.unscoped.kept.find_by(id: params[:recording_id])
+      return if @parent && RecordingStudioIdentity.allowance(@parent) && identity_can?(:view, @parent)
 
       raise NotFound, "No identity parent #{params[:recording_id].inspect}"
     end

@@ -112,6 +112,8 @@ RecordingStudioIdentity.update(identity_recording, actor:, name:, description:, 
 
 `update` uses `revise`. The recording id stays the same. An update that does not change name, description, or website URL does not write a revision. `kind` is not an update field.
 
+Live lists and lookups call `RecordingStudio::Recording.kept`. `include_trashed: true` reads the unfiltered children, so a trashed identity still fills a `:one` slot until it is purged. `:many` lists the kept identities in name order.
+
 ### JSON API and MCP
 
 When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity::Identity` on each configured API. MCP hosts that wrap that API get the same actions. Default API create is not used, because it would skip `RecordingStudioIdentity.create`.
@@ -205,7 +207,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.1.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.12.0`, and FlatPack `>= 0.1.320`. The dummy app pins Recording Studio `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Cache `v0.6.2`, Root Switchable `v0.11.5`, FlatPack `v0.1.341`, and Recording Studio API `v0.21.3` (with Admin `v2.12.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0`), and locks Rails `8.1.4.1`. Recording Studio 6.1 or newer supplies the default layout. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.14.0`, Accessible `>= 0.22.0`, Attachable `>= 0.22.0`, Trashable `>= 0.16.0`, and FlatPack `>= 0.1.320`. The dummy app pins Recording Studio `v6.14.0`, Accessible `v0.32.0`, Attachable `v0.23.0`, Trashable `v0.16.0`, Metrics `v0.8.0`, Cache `v0.6.3`, Root Switchable `v0.15.0`, FlatPack `v0.1.356`, and Recording Studio API `v0.23.0` (with Admin `v2.13.0`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`). Recording Studio 6.14 supplies `Recording.kept`. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
 
 ```bash
 bin/rails generate recording_studio_identity:install
