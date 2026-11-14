@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.0", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.5.1", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
@@ -16,7 +16,7 @@ class RecordingStudioIdentityTest < Minitest::Test
 
     assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
     refute_includes gemspec, '"< 5"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.320"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.362"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.22.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_attachable", ">= 0.22.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.12.0"'
@@ -82,7 +82,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.356"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.362"'
     refute_includes gemfile, 'tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v4.4.0"'
