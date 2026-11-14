@@ -4,22 +4,22 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.0", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.6.0", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioIdentity::Engine
   end
 
-  def test_gemspec_pins_recording_studio_6_1
+  def test_gemspec_pins_recording_studio_6_14
     gemspec = File.read(File.expand_path("../recording_studio_identity.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.1.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.14.0"'
     refute_includes gemspec, '"< 5"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.320"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.22.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_attachable", ">= 0.22.0"'
-    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.12.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_trashable", ">= 0.16.0"'
   end
 
   def test_gemspec_excludes_cursor_config
@@ -49,7 +49,7 @@ class RecordingStudioIdentityTest < Minitest::Test
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.7.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.14.0"'
     refute_includes gemfile, 'tag: "v6.3.0"'
     refute_includes gemfile, 'tag: "v4.7.1"'
     refute_includes gemfile, 'tag: "v4.7.0"'
@@ -57,7 +57,8 @@ class RecordingStudioIdentityTest < Minitest::Test
     refute_includes gemfile, 'tag: "v4.5.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.32.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.23.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.14.0", require: false'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.16.0", require: false'
+    refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.14.0"'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
     refute_includes gemfile, 'tag: "v0.17.0"'

@@ -103,7 +103,7 @@ module RecordingStudioIdentity
       parent_not_allowed!(parent) unless allowance(parent)
 
       scope = Slots.children(parent, IDENTITY_TYPE)
-      scope = scope.where(trashed_at: nil) unless include_trashed
+      scope = scope.kept unless include_trashed
       by_name(scope).preload(:recordable).to_a
     end
 
@@ -115,12 +115,14 @@ module RecordingStudioIdentity
       end
 
       occupant = Slots.sole_identity!(parent)
-      occupant if occupant && (include_trashed || occupant.trashed_at.nil?)
+      occupant if occupant && (include_trashed || kept?(occupant))
     end
 
     def find(id, include_trashed: false)
-      recording = RecordingStudio::Recording.unscoped.find_by(id: id, recordable_type: IDENTITY_TYPE) if id.present?
-      raise NotFound, "No identity #{id.inspect}" if recording.nil? || (recording.trashed_at && !include_trashed)
+      scope = RecordingStudio::Recording.unscoped.where(id: id, recordable_type: IDENTITY_TYPE)
+      scope = scope.kept unless include_trashed
+      recording = scope.take if id.present?
+      raise NotFound, "No identity #{id.inspect}" if recording.nil?
 
       recording
     end
@@ -181,7 +183,7 @@ module RecordingStudioIdentity
     def remove_image(identity, actor:)
       current = live_identity_for_write!(identity, actor)
       image = Slots.occupant(current, IMAGE_TYPE)
-      return current if image.nil? || image.trashed_at
+      return current if image.nil? || !kept?(image)
 
       host_write do
         RecordingStudio::Recording.transaction do
@@ -194,7 +196,7 @@ module RecordingStudioIdentity
 
     def image(identity)
       image = Slots.occupant(identity!(identity), IMAGE_TYPE)
-      image if image && image.trashed_at.nil?
+      image if image && kept?(image)
     end
 
     def display_name(identity)
@@ -237,7 +239,7 @@ module RecordingStudioIdentity
     end
 
     def can_restore?(identity, actor)
-      identity_recording?(identity) && identity.trashed_at.present? &&
+      identity_recording?(identity) && !kept?(identity) &&
         RecordingStudioTrashable.authorized?(action: :restore, actor: actor, recording: identity)
     end
 
@@ -269,13 +271,17 @@ module RecordingStudioIdentity
       recording.is_a?(RecordingStudio::Recording) && recording.recordable_type == IDENTITY_TYPE
     end
 
-    def live_identity?(recording) = identity_recording?(recording) && recording.trashed_at.nil?
+    def kept?(recording)
+      RecordingStudio::Recording.kept.exists?(recording.id)
+    end
+
+    def live_identity?(recording) = identity_recording?(recording) && kept?(recording)
 
     def live_identity_for_write!(identity, actor)
       identity!(identity)
       authorize!(identity, :edit, actor)
       current = RecordingStudio::Recording.unscoped.find(identity.id)
-      raise Trashed.new(identity: current) if current.trashed_at
+      raise Trashed.new(identity: current) unless kept?(current)
 
       current
     end
@@ -363,7 +369,7 @@ module RecordingStudioIdentity
     def update_identity!(identity, attributes, actor:)
       RecordingStudio::Recording.transaction do
         locked = RecordingStudio::Recording.unscoped.lock.find(identity.id)
-        raise Trashed.new(identity: locked) if locked.trashed_at
+        raise Trashed.new(identity: locked) unless kept?(locked)
 
         revise_identity!(locked, attributes, actor: actor)
       end
@@ -399,7 +405,7 @@ module RecordingStudioIdentity
         attachment_recording: image, signed_blob_id: signed_blob_id, actor: actor, name: IMAGE_NAME
       )
       raise ImageRejected, result.error if result.failure?
-      return unless image.trashed_at
+      return if kept?(image)
 
       restored = RecordingStudioAttachable::Services::RestoreAttachment.call(
         attachment_recording: image.reload, actor: actor

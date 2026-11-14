@@ -1,5 +1,5 @@
 <%# locals: (parent:, identity:) %>
-<% if identity&.trashed_at %>
+<% if identity.present? && !identity_kept?(identity) %>
   <%= render FlatPack::Alert::Component.new(
     style: :warning,
     title: identity_t("trash.in_trash_title", name: identity.recordable.name),

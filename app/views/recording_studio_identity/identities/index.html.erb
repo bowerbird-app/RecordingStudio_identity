@@ -37,7 +37,7 @@
       <% identities.each do |identity| %>
         <%= render FlatPack::List::Item.new do %>
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <span class="font-medium"><%= identity.recordable.name %><%= identity_t("trash.in_trash_suffix") if identity.trashed_at %></span>
+            <span class="font-medium"><%= identity.recordable.name %><%= identity_t("trash.in_trash_suffix") unless identity_kept?(identity) %></span>
             <%= render FlatPack::Button::Component.new(
               text: identity_t("actions.view"),
               style: :ghost,
@@ -49,7 +49,7 @@
         <% end %>
       <% end %>
     <% end %>
-  <% elsif @identity && @identity.trashed_at.nil? %>
+  <% elsif @identity && identity_kept?(@identity) %>
     <%= render "list", parent: @parent, identities: [@identity], trashed_identities: [] %>
   <% else %>
     <%= render "vacancy", parent: @parent, identity: @identity %>
