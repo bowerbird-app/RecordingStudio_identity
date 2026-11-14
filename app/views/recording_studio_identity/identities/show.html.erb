@@ -39,7 +39,7 @@
     </div>
   <% end %>
 
-  <% if @identity.trashed_at %>
+  <% unless identity_kept?(@identity) %>
     <div class="mt-8 flex flex-col items-start gap-4">
       <%= render FlatPack::Alert::Component.new(
         style: :warning,

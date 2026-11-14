@@ -12,6 +12,10 @@ module RecordingStudioIdentity
       image_processing_quality
     ].freeze
 
+    def identity_kept?(recording)
+      recording.present? && RecordingStudio::Recording.kept.exists?(recording.id)
+    end
+
     def identity_t(key, **)
       RecordingStudioIdentity::Copy.t(key, **)
     end
