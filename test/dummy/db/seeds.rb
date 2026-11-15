@@ -55,10 +55,10 @@ Current.actor = user
 
 begin
   # Create the root recording, then grant :edit before child record! calls.
-  root_recording = RecordingStudio.root_recording_for(workspace)
-  accessible_root_recording = RecordingStudio.root_recording_for(accessible_workspace)
-  private_root_recording = RecordingStudio.root_recording_for(private_workspace)
-  agency_recording = RecordingStudio.root_recording_for(agency)
+  root_recording = RecordingStudio.create_root_recording!(workspace, actor: user)
+  accessible_root_recording = RecordingStudio.create_root_recording!(accessible_workspace, actor: user)
+  private_root_recording = RecordingStudio.create_root_recording!(private_workspace, actor: user)
+  agency_recording = RecordingStudio.create_root_recording!(agency, actor: user)
 
   [root_recording, accessible_root_recording, agency_recording].each do |recording|
     next if RecordingStudioAccessible.authorized?(actor: user, recording: recording, role: :edit)

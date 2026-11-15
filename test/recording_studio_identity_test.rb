@@ -4,17 +4,36 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.2", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.6.0", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioIdentity::Engine
   end
 
-  def test_gemspec_pins_recording_studio_6_14
+  def test_image_slot_uses_core_single_child_and_drops_the_kept_sql_alias
+    root = File.expand_path("..", __dir__)
+    engine = File.read(File.join(root, "lib/recording_studio_identity/engine.rb"))
+    slots = File.read(File.join(root, "lib/recording_studio_identity/slots.rb"))
+    capability = File.read(File.join(root, "lib/recording_studio_identity/capability.rb"))
+
+    assert_includes engine, 'key: "recording_studio_identity.image"'
+    assert_includes engine, "declare_single_child("
+    refute_includes engine, "Slots::Validation"
+    refute_includes engine, "Capabilities::Trashable"
+    assert_includes engine, "enable_capability(:trashable, on: IMAGE_TYPE)"
+    refute_includes slots, "def lock_parent!"
+    refute_includes slots, "module Validation"
+    assert_includes slots, "def sync_parent_limit!"
+    assert_includes capability, "sync_parent_limit!"
+    refute File.exist?(File.join(root, "test/dummy/config/initializers/recording_studio_trashable_kept_sql.rb"))
+  end
+
+  def test_gemspec_pins_recording_studio_7
     gemspec = File.read(File.expand_path("../recording_studio_identity.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.14.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"'
+    refute_includes gemspec, '">= 6.14.0"'
     refute_includes gemspec, '"< 5"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.362"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.42.0"'
@@ -49,21 +68,23 @@ class RecordingStudioIdentityTest < Minitest::Test
   def test_dummy_gemfile_pins_verified_4x_github_tags
     gemfile = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v6.14.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.0.0"'
+    root_gemfile = File.read(File.expand_path("../Gemfile", __dir__))
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio", tag: "v7.0.0"'
     refute_includes gemfile, 'tag: "v6.3.0"'
     refute_includes gemfile, 'tag: "v4.7.1"'
     refute_includes gemfile, 'tag: "v4.7.0"'
     refute_includes gemfile, 'tag: "v4.6.0"'
     refute_includes gemfile, 'tag: "v4.5.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.42.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.23.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.16.0", require: false'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.43.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.26.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.16.1", require: false'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.14.0"'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"'
     refute_includes gemfile, 'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.10.0"'
     refute_includes gemfile, 'tag: "v0.17.0"'
     refute_includes gemfile, 'tag: "v0.10.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.1"'
     refute_includes gemfile, 'tag: "v0.11.5"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.8.0"'
     refute_includes gemfile, 'tag: "v0.7.2"'
@@ -78,19 +99,19 @@ class RecordingStudioIdentityTest < Minitest::Test
     refute_includes File.read(File.expand_path("../Gemfile", __dir__)), "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("../Rakefile", __dir__)), "widen_recording_studio_requirement"
     refute File.exist?(File.expand_path("support/widen_recording_studio_requirement.rb", __dir__))
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.13.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.4"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.16.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.5"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.2.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.362"'
+    assert_includes gemfile, 'github: "bowerbird-app/flatpack", tag: "v0.1.376"'
     refute_includes gemfile, 'tag: "v0.1.196"'
     refute_includes gemfile, "recording_studio/v3.0.0"
     refute_includes gemfile, 'tag: "v4.4.0"'
     refute_includes gemfile, 'tag: "v4.3.0"'
     refute_includes gemfile, 'tag: "v4.2.2"'
     refute_includes gemfile, 'tag: "v4.2.1"'
-    refute_includes gemfile, 'tag: "v4.2.0"'
+    refute_includes gemfile, 'tag: "v4.1.1"'
     refute_includes gemfile, 'tag: "v0.9.1"'
     refute_includes gemfile, 'tag: "v0.1.341"'
     refute_includes gemfile, 'tag: "v0.1.177"'
@@ -156,7 +177,8 @@ class RecordingStudioIdentityTest < Minitest::Test
 
     assert_includes source, "def self.to(**options)"
     assert_includes source, "RecordingStudio::Capabilities.include_for("
-    assert_includes source, "allow: RecordingStudioIdentity::Slots.parse!(options[:allow])"
+    assert_includes source, "allowance = RecordingStudioIdentity::Slots.parse!(options[:allow])"
+    assert_includes source, "sync_parent_limit!(parent, allowance)"
     refute_includes source, "enable_capability"
     refute_includes source, "set_capability_options"
     refute File.exist?(File.expand_path("../lib/recording_studio_identity/capabilities/example.rb", __dir__))

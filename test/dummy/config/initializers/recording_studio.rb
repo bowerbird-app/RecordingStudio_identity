@@ -20,15 +20,16 @@ RecordingStudio.configure do |config|
   # Actor resolver for events when no actor is explicitly supplied
   config.actor = -> { Current.actor }
 
-  # Recording Studio 6.5 refuses record! when this authorizer is missing.
-  # Users need Accessible :edit on the root. Access rows written by
+  # Recording Studio refuses record! when this authorizer is missing.
+  # Creating a root passes root_recording: nil. A persisted actor may open one.
+  # Later writes need Accessible :edit on that root. Access rows written by
   # grant_access / bootstrap_owner_access! go through AccessCreationContext.
   # API provisioning records the client, credential, and token as the
   # ApiClient actor, including when that client's access role is only :view.
   config.authorize_write = lambda { |actor:, action:, root_recording:, recordable:, **|
     next false unless actor.is_a?(ActiveRecord::Base) && action.to_s.strip.present?
     next true if actor.class.name == "RecordingStudioApi::ApiClient"
-    next false unless root_recording
+    next true if root_recording.nil?
 
     if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
       next true if RecordingStudioAccessible::AccessCreationContext.allowed?

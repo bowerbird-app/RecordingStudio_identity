@@ -43,7 +43,7 @@ include RecordingStudio::Capabilities::Identities.to(allow: :many)
 
 `:one` allows a single identity. A trashed identity still occupies that slot until it is purged. A second create raises `RecordingStudioIdentity::IdentityAlreadyExists`. `:many` lists every live identity in name order.
 
-Shared roots cannot hold identities. The write path locks the root recording and then the parent, in the same order as `record!`.
+Shared roots cannot hold identities. A parent that allows one identity is a single child under that parent. The image is a single child under the identity. Recording Studio locks that parent and raises `RecordingStudio::SlotTaken` when the slot is taken. A second identity becomes `IdentityAlreadyExists`. A second image becomes `ImageRejected` with "An identity can have only one image". Replace an image by revising the current image recording. Trashing does not free either slot.
 
 ## Configuration
 
@@ -207,7 +207,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 6.14.0`, Accessible `>= 0.42.0`, Attachable `>= 0.22.0`, Trashable `>= 0.16.0`, and FlatPack `>= 0.1.362`. The dummy app pins Recording Studio `v6.14.0`, Accessible `v0.42.0`, Attachable `v0.23.0`, Trashable `v0.16.0`, Metrics `v0.8.0`, Cache `v0.6.3`, Root Switchable `v0.15.0`, FlatPack `v0.1.362`, and Recording Studio API `v0.23.0` (with Admin `v2.13.0`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`), and locks Rails `8.1.4.1`. Recording Studio 6.14 supplies `Recording.kept`. `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 7.0`, `< 8.0`, Accessible `>= 0.42.0`, Attachable `>= 0.22.0`, Trashable `>= 0.16.0`, and FlatPack `>= 0.1.362`. Create a root with `RecordingStudio.create_root_recording!`. `root_recording_for` only finds one. The dummy app pins Recording Studio `v7.0.0`, Accessible `v0.43.1`, Attachable `v0.26.0`, Trashable `v0.16.1`, Metrics `v0.8.0`, Cache `v0.6.3`, Root Switchable `v0.15.1`, FlatPack `v0.1.376`, and Recording Studio API `v0.23.4` (with Admin `v2.16.0`, Logs `v0.7.5`, Moveable `v4.2.0`, and Icons `v0.2.1`). `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel use a collapsing ButtonGroup. `config.authorize_write` must allow a root create when `root_recording` is nil.
 
 ```bash
 bin/rails generate recording_studio_identity:install

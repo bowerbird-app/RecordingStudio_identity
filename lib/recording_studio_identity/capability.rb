@@ -9,10 +9,10 @@ module RecordingStudio
           raise RecordingStudioIdentity::ConfigurationError, "Unknown identities option(s): #{unknown.join(', ')}"
         end
 
-        RecordingStudio::Capabilities.include_for(
-          :identities,
-          allow: RecordingStudioIdentity::Slots.parse!(options[:allow])
-        )
+        allowance = RecordingStudioIdentity::Slots.parse!(options[:allow])
+        RecordingStudio::Capabilities.include_for(:identities, allow: allowance) do |parent|
+          RecordingStudioIdentity::Slots.sync_parent_limit!(parent, allowance)
+        end
       end
     end
   end
