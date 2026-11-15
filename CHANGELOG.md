@@ -6,6 +6,30 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.6.0] - 2026-11-15
+
+### Changed
+
+- Require Recording Studio `>= 7.0`, `< 8.0`.
+- An identity image is a single child under the identity (`recording_studio_identity.image`). A parent that allows one identity registers that parent (`recording_studio_identity.identity.<Type>`). Recording Studio locks the parent and raises `RecordingStudio::SlotTaken`. A second identity is still `IdentityAlreadyExists`. A second image is still `ImageRejected` with "An identity can have only one image". Replacing an image revises the current image recording. The image stays trashable so remove, and trash of the identity, still trash the attachment.
+- Create roots with `RecordingStudio.create_root_recording!`. `root_recording_for` only finds an existing root and returns nil when there is none.
+- Development and dummy apps pin Recording Studio `v7.0.0`, Accessible `v0.43.1`, Attachable `v0.26.0`, Trashable `v0.16.1`, Admin `v2.16.0`, API `v0.23.4`, Logs `v0.7.5`, Moveable `v4.2.0`, Root Switchable `v0.15.1`, and FlatPack `v0.1.376`. Metrics `v0.8.0`, Cache `v0.6.3`, and Icons `v0.2.1` stay on their current releases.
+- The dummy no longer defines `Recording.recording_studio_trashable_kept_sql`. Accessible 0.43, API 0.23.4, and Admin 2.16 do not call it.
+
+### Upgrade notes
+
+Pin `v0.6.0`. There is no identity migration. The image and a one-identity parent are pairwise slots, so they are not in the `recording_studio:single_child_index` partial index. Do not run that generator for this gem.
+
+Hosts need Recording Studio `>= 7.0`, `< 8.0`. Create roots with `RecordingStudio.create_root_recording!(recordable, actor:)`. `root_recording_for` returns nil until that create. `config.authorize_write` must allow the create when `root_recording` is nil.
+
+Companions that resolve with core 7 here: Accessible `v0.43.1`, Trashable `v0.16.1`, Attachable `v0.26.0`, API `v0.23.4`, and Admin `v2.16.0`. Attachable 0.26 needs FlatPack `>= 0.1.371`. This repo pins FlatPack `v0.1.376`.
+
+Drop a host copy of the `recording_studio_trashable_kept_sql` alias if it only existed for API 0.23 or Admin 2.13. Those releases no longer call it.
+
+A second image is rejected. Replace the file on the existing image recording. Trashing an image does not free the slot. `:one` still raises `IdentityAlreadyExists` when the slot is taken, including when the occupant is trashed.
+
+Identity enables Trashable on the attachment type so remove and cascade can trash the image. That is `RecordingStudio.enable_capability`, not an include of Trashable on every reload.
+
 ## [0.5.2] - 2026-11-14
 
 ### Changed

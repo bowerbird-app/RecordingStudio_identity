@@ -133,16 +133,25 @@ module RecordingStudioIdentity
       RecordingStudio::DelegatedTypeRegistrar.apply!
     end
 
+    # An image is single under an identity. Parents that allow one identity
+    # register their own rule when they include the capability.
+    initializer "recording_studio_identity.single_children" do
+      RecordingStudio.declare_single_child(
+        IMAGE_TYPE,
+        under: IDENTITY_TYPE,
+        key: "recording_studio_identity.image"
+      )
+    end
+
+    # Remove and restore trash the image recording. The method lives on every
+    # recording once Trashable loads, and it refuses a type that has not opted in.
+    initializer "recording_studio_identity.image_trash" do
+      RecordingStudio.enable_capability(:trashable, on: IMAGE_TYPE)
+    end
+
     initializer "recording_studio_identity.slots" do
       config.to_prepare do
         RecordingStudioIdentity::Identity.table_name
-        recording = RecordingStudio::Recording
-        recording.include(Slots::Validation) unless recording.include?(Slots::Validation)
-
-        unless RecordingStudio.capability_enabled?(:trashable, for: IMAGE_TYPE)
-          RecordingStudioAttachable::Attachment.include(RecordingStudio::Capabilities::Trashable.to)
-        end
-
         Slots.verify!
       end
     end

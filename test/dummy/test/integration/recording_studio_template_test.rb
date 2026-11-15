@@ -70,7 +70,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
 
     assert_includes workspace_source, "include RecordingStudio::Capabilities::Identities.to(allow: :one)"
     assert_includes capability_source, "RecordingStudio::Capabilities.include_for("
-    assert_includes capability_source, "allow: RecordingStudioIdentity::Slots.parse!(options[:allow])"
+    assert_includes capability_source, "allowance = RecordingStudioIdentity::Slots.parse!(options[:allow])"
+    assert_includes capability_source, "sync_parent_limit!(parent, allowance)"
     refute_includes capability_source, "enable_capability"
 
     assert RecordingStudio.capability_enabled?(:accessible, for: Workspace)

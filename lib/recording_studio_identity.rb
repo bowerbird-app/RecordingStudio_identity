@@ -136,8 +136,10 @@ module RecordingStudioIdentity
           parent, attributes, actor: actor, key: idempotency_key.presence, signed_blob_id: signed_blob_id
         )
       end
+    rescue RecordingStudio::SlotTaken => e
+      raise_taken_identity!(parent, e)
     rescue ActiveRecord::RecordInvalid => e
-      create_failed!(parent, e)
+      create_failed!(e)
     end
 
     def update(identity, actor:, **fields)
@@ -178,6 +180,8 @@ module RecordingStudioIdentity
         raise ImageRejected, result.error if result.failure?
       end
       current
+    rescue RecordingStudio::SlotTaken
+      raise ImageRejected, Slots::MESSAGES.fetch(:image)
     end
 
     def remove_image(identity, actor:)
@@ -335,7 +339,6 @@ module RecordingStudioIdentity
 
     def create_identity!(parent, attributes, actor:, key:, signed_blob_id:)
       RecordingStudio::Recording.transaction do
-        Slots.lock_parent!(parent)
         created_with_key(parent, key) ||
           record_identity!(parent, attributes, actor: actor, key: key, signed_blob_id: signed_blob_id)
       end
@@ -356,12 +359,16 @@ module RecordingStudioIdentity
       recording
     end
 
-    def create_failed!(parent, error)
+    def raise_taken_identity!(parent, error)
+      occupant = Slots.sole_identity!(parent)
+      raise IdentityAlreadyExists.new(identity: occupant) if occupant
+
+      raise error
+    end
+
+    def create_failed!(error)
       record = error.record
       raise Invalid.new(record: record) if record.is_a?(Identity)
-
-      occupant = record.errors.of_kind?(:base, :identity_taken) && Slots.sole_identity!(parent)
-      raise IdentityAlreadyExists.new(identity: occupant) if occupant
 
       raise error
     end
@@ -396,6 +403,8 @@ module RecordingStudioIdentity
         parent_recording: identity, signed_blob_id: signed_blob_id, actor: actor, name: IMAGE_NAME
       )
       raise ImageRejected, result.error if result.failure?
+    rescue RecordingStudio::SlotTaken
+      raise ImageRejected, Slots::MESSAGES.fetch(:image)
     rescue ArgumentError => e
       raise ImageRejected, e.message
     end

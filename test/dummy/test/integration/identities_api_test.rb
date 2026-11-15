@@ -198,6 +198,33 @@ class IdentitiesApiTest < ActiveSupport::TestCase
     assert_equal identity, RecordingStudioIdentity.remove_image(identity, actor: @actor)
   end
 
+  test "a second image is rejected and the existing image stays" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
+    RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
+
+    error = assert_raises(RecordingStudioIdentity::ImageRejected) do
+      RecordingStudioIdentity.import_image(
+        identity,
+        io: StringIO.new(TINY_PNG),
+        filename: "another.png",
+        content_type: "image/png",
+        actor: @actor
+      )
+    end
+    assert_equal "An identity can have only one image", error.message
+    assert_equal 1, RecordingStudioIdentity::Slots.children(identity, RecordingStudioIdentity::IMAGE_TYPE).count
+
+    assert_raises(RecordingStudio::SlotTaken) do
+      RecordingStudio.record!(
+        action: "created",
+        recordable: RecordingStudioAttachable::Attachment.new(name: "extra"),
+        root_recording: identity.root_recording_or_self,
+        parent_recording: identity,
+        actor: @actor
+      )
+    end
+  end
+
   test "trashing an identity trashes its image and restore brings it back" do
     identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
     RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
@@ -234,7 +261,7 @@ class IdentitiesApiTest < ActiveSupport::TestCase
 
   def owned_root(klass)
     recordable = klass.create!(name: "#{klass.name} #{SecureRandom.hex(4)}")
-    root = RecordingStudio.root_recording_for(recordable)
+    root = RecordingStudio.create_root_recording!(recordable, actor: @actor)
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: @actor)
     raise result.error if result.failure?
 
@@ -284,7 +311,7 @@ class IdentitiesConcurrencyTest < ActiveSupport::TestCase
       password_confirmation: "Password123!"
     )
     @workspace = Workspace.create!(name: "Race #{SecureRandom.hex(4)}")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: @actor)
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: @root, actor: @actor)
     raise result.error if result.failure?
   end

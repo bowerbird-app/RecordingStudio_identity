@@ -54,42 +54,18 @@ module RecordingStudioIdentity
       RecordingStudioIdentity.allowance(parent) == :many || occupant(parent, IDENTITY_TYPE).nil?
     end
 
-    def lock_parent!(parent)
-      root_id = parent.root_recording_id
-      RecordingStudio::Recording.unscoped.lock.find(root_id) if root_id.present? && root_id != parent.id
-      RecordingStudio::Recording.unscoped.lock.find(parent.id)
-    end
+    # :one is a single child under that parent type. :many clears the rule so a
+    # reload that flips the allowance does not leave the slot in place.
+    # Named parent rules stay out of the single-child index.
+    def sync_parent_limit!(parent, allowance)
+      type_name = parent.name.to_s
+      return if type_name.blank?
 
-    def slot_for(child_type, parent)
-      case child_type
-      when IDENTITY_TYPE then :identity if RecordingStudioIdentity.allowance(parent) == :one
-      when IMAGE_TYPE then :image if parent.recordable_type == IDENTITY_TYPE
-      end
-    end
-
-    module Validation
-      extend ActiveSupport::Concern
-
-      included do
-        validate :recording_studio_identity_slot_free, if: :recording_studio_identity_slot_candidate?
-      end
-
-      private
-
-      def recording_studio_identity_slot_candidate?
-        parent_recording_id.present? && [IDENTITY_TYPE, IMAGE_TYPE].include?(recordable_type) &&
-          (new_record? || will_save_change_to_parent_recording_id?)
-      end
-
-      def recording_studio_identity_slot_free
-        parent = RecordingStudio::Recording.unscoped.find_by(id: parent_recording_id)
-        slot = parent && Slots.slot_for(recordable_type, parent)
-        return unless slot
-
-        Slots.lock_parent!(parent)
-        return unless Slots.occupant(parent, recordable_type, except: id)
-
-        errors.add(:base, :"#{slot}_taken", message: MESSAGES.fetch(slot))
+      key = "recording_studio_identity.identity.#{type_name}"
+      if allowance == :one
+        RecordingStudio.declare_single_child(IDENTITY_TYPE, under: type_name, key: key)
+      else
+        RecordingStudio.remove_single_child(key)
       end
     end
   end
