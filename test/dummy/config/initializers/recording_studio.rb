@@ -3,13 +3,24 @@
 RecordingStudio.configure do |config|
   # Registered delegated_type recordables (strings or classes)
   config.recordable_types = [ "Workspace", "Folder", "Page", "Agency", "Project" ]
-  config.recordable_types += [
-    "RecordingStudio::Access",
-    "RecordingStudioApi::ApiClient",
-    "RecordingStudioApi::ApiCredential",
-    "RecordingStudioApi::ApiAccessToken",
-    "RecordingStudioApi::AdminApi"
-  ] if defined?(RecordingStudioApi)
+  if defined?(RecordingStudioApi)
+    config.recordable_types += [
+      "RecordingStudio::Access",
+      "RecordingStudioApi::ApiClient",
+      "RecordingStudioApi::ApiCredential",
+      "RecordingStudioApi::ApiAccessToken"
+    ]
+    # Core requires a declaration for every registered type. API declares
+    # AdminApi only when admin_root_recordable_type_names names a root.
+    Rails.application.config.to_prepare do
+      next if Array(RecordingStudioApi.configuration.admin_root_recordable_type_names).blank?
+
+      types = RecordingStudio.configuration.recordable_types.map(&:to_s)
+      next if types.include?("RecordingStudioApi::AdminApi")
+
+      RecordingStudio.configuration.recordable_types = types + [ "RecordingStudioApi::AdminApi" ]
+    end
+  end
 
   # Require each configured ActiveRecord type to call recording_studio_recordable.
   config.require_recordable_declarations = true
