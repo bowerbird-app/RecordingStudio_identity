@@ -124,12 +124,13 @@ When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity
 | GET | `/recording_studio_api/api/v1/identities/:id` | `:view` on the identity |
 | POST | `/recording_studio_api/api/v1/identities` | `:edit` on the parent |
 | PATCH | `/recording_studio_api/api/v1/identities/:id` | `:edit` on the identity |
+| POST | `/recording_studio_api/api/v1/identities/:id/actions/create_upload` | `:edit` on the identity |
 | POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_set_image` | `:edit` on the identity |
 | POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_remove_image` | `:edit` on the identity |
 
 `parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`.
 
-`identity_set_image` takes `signed_blob_id` for that same identity. This gem leaves `create_upload` off. The host enables it by adding `:create_upload` to `capability_actions` in `RecordingStudioIdentity::Api.type_options`. Or use the signed-in Attachable route `recordings/:recording_id/attachments/direct_uploads`, which returns the same signed id as `signed_id` and does not take an API token. PUT the file bytes to the returned upload URL with the returned headers, then call `identity_set_image`. A signed id from another recording or another actor is rejected. `attach` and `import_attachment` stay off.
+`create_upload` prepares a direct upload for that identity. It returns `signed_blob_id`, `upload.url`, `upload.headers`, and `expires_at`. PUT the file bytes to `upload.url` with `upload.headers`, then call `identity_set_image` with `signed_blob_id`. The upload URL and the signed id expire. The default lifetime is 5 minutes. The signed id only works for this identity and the same actor. Allowed files are `image/*`, up to 10 MB. A signed id from another recording or another actor is rejected. `attach` and `import_attachment` stay off.
 
 Both image actions need edit access, reject a trashed identity, and return the same identity JSON as show. The picture is not in that JSON. Allowed files are `image/*`, up to 10 MB, and an identity holds one picture. `identity_remove_image` with no picture, or with a picture that is already trashed, succeeds and changes nothing. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource. The Identity docs tag groups these actions with the other identity operations.
 

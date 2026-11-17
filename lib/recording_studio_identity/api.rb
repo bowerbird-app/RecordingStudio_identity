@@ -20,6 +20,7 @@ module RecordingStudioIdentity
       register_type(api)
       register_resource_handlers(api)
       ImageActions.register!(api)
+      ImageActionCopy.document_create_upload
     end
 
     def register_type(api)
@@ -31,7 +32,8 @@ module RecordingStudioIdentity
     def type_options(api)
       {
         api:, operations: %i[index show create update], auto_capability_actions: false,
-        capability_actions: %i[identity_set_image identity_remove_image], serializer: method(:serialize_fields),
+        capability_actions: %i[create_upload identity_set_image identity_remove_image],
+        serializer: method(:serialize_fields),
         output_keys: FIELDS, writable_attributes: FIELDS, immutable_fields: %i[kind],
         openapi: openapi_docs
       }
