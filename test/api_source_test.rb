@@ -15,6 +15,7 @@ class ApiSourceTest < Minitest::Test
   def test_handlers_call_existing_identity_methods
     resource = File.read(File.expand_path("../lib/recording_studio_identity/api/identity_resource.rb", __dir__))
     images = File.read(File.expand_path("../lib/recording_studio_identity/api/image_actions.rb", __dir__))
+    copy = File.read(File.expand_path("../lib/recording_studio_identity/api/image_action_copy.rb", __dir__))
 
     assert_includes resource, "RecordingStudioIdentity.identities(parent)"
     assert_includes resource, "RecordingStudioIdentity.find(context.id)"
@@ -25,7 +26,7 @@ class ApiSourceTest < Minitest::Test
     assert_includes images, "RecordingStudioIdentity.set_image("
     assert_includes images, "RecordingStudioIdentity.remove_image("
     assert_includes images, "capability_action(name, api:)"
-    assert_includes images, "reject_unknown: false"
+    assert_includes copy, "reject_unknown: false"
   end
 
   def test_engine_registers_the_api_after_reload

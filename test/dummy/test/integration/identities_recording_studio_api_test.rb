@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "base64"
+require "digest"
 require "stringio"
 
 class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
@@ -114,6 +115,9 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
 
     call(:post, "/identities/#{identity.id}/actions/identity_remove_image", @viewer_token)
     assert_response :forbidden, response.body
+
+    call(:post, "/identities/#{identity.id}/actions/create_upload", @viewer_token, upload_fields(TINY_PNG))
+    assert_response :forbidden, response.body
   end
 
   test "an identity in another workspace is not found" do
@@ -140,7 +144,7 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
   test "identity api registration matches ui roles and skips trash attach helpers" do
     registration = RecordingStudioApi.recordable_registration_for("RecordingStudioIdentity::Identity")
     assert_equal %i[create index show update], registration.operations
-    assert_equal %w[identity_remove_image identity_set_image], registration.capability_actions
+    assert_equal %w[create_upload identity_remove_image identity_set_image], registration.capability_actions
     assert_equal false, registration.auto_capability_actions
     assert_includes registration.immutable_fields, "kind"
 
@@ -153,6 +157,103 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_equal RecordingStudioIdentity::Api::IdentityResource::Index,
                  RecordingStudioApi.resource_handler("RecordingStudioIdentity::Identity", :index)
     assert_equal RecordingStudioIdentity::Identity::CREATE_FIELDS, RecordingStudioIdentity::Api::FIELDS
+  end
+
+  test "identity image docs name the upload, the recording id, and the Identity tag" do
+    document = RecordingStudioApi::Services::OpenapiDocument.call
+    set_image = image_operation(document, "identity_set_image")
+    remove_image = image_operation(document, "identity_remove_image")
+    stored_set = RecordingStudioApi.capability_action(:identity_set_image).openapi
+    stored_remove = RecordingStudioApi.capability_action(:identity_remove_image).openapi
+
+    assert_equal "Set image", stored_set[:title]
+    assert_equal "Store or replace the one picture on this identity.", stored_set[:summary]
+    assert_equal "The identity recording id. Create, list, and show return it as id.",
+                 stored_set[:parameters].first[:description]
+    assert_includes stored_set.dig(:responses, :"200", :description), "picture is not in this JSON"
+    assert_equal "Set image", set_image[:title]
+    assert_equal "Store or replace the one picture on this identity.", set_image[:summary]
+    assert_includes set_image[:description], "Call create_upload on this identity first."
+    assert_includes set_image[:description], "PUT the file bytes to upload.url with upload.headers"
+    assert_includes set_image[:description], "image/*"
+    assert_includes set_image[:description], "10 MB"
+    assert_includes set_image[:description], "trashed identity is rejected"
+    refute_includes set_image[:title], "Identity"
+    refute_includes set_image[:summary], "Identity -"
+    assert_equal ["Identity"], set_image[:tags]
+
+    id_param = set_image[:parameters].find { |param| param["name"] == "id" }
+    assert_equal "The identity recording id. Create, list, and show return it as id.", id_param["description"]
+    refute_equal "Path parameter id.", id_param["description"]
+    refute_equal "Resource identifier.", id_param["description"]
+
+    blob = set_image.dig(:requestBody, :content, "application/json", :schema, :properties, "signed_blob_id")
+    assert_includes blob[:description], "create_upload on this identity"
+    assert_includes set_image.dig(:responses, "200", "description"), "picture is not in this JSON"
+
+    assert_equal "Remove image", stored_remove[:title]
+    assert_equal "Remove the picture from this identity.", stored_remove[:summary]
+    assert_equal "Remove image", remove_image[:title]
+    assert_equal "Remove the picture from this identity.", remove_image[:summary]
+    assert_includes remove_image[:description], "changes nothing"
+    assert_includes remove_image[:description], "already trashed"
+    refute_includes remove_image[:title], "Identity"
+    refute_includes remove_image[:summary], "Identity -"
+
+    identity_group = document[:"x-tagGroups"].find { |group| group[:name] == "Identity" }
+    assert_includes identity_group[:tags], "Identity"
+    identity_tag = document[:tags].find { |tag| tag[:name] == "Identity" }
+    assert_equal "A public identity for a person, company, brand, or organisation. The id is the recording id.",
+                 identity_tag[:description]
+    registration = RecordingStudioApi.recordable_registration_for("RecordingStudioIdentity::Identity")
+    assert_equal ["Identity"], registration.openapi[:tags]
+    assert_equal "Identity", registration.openapi.dig(:tag, :group)
+
+    upload = image_operation(document, "create_upload")
+    stored_upload = RecordingStudioApi.capability_action(:create_upload).openapi_for(
+      type: "RecordingStudioIdentity::Identity"
+    )
+    assert_equal "Create upload", stored_upload[:title]
+    assert_equal "Prepare a direct upload for this identity's picture.", stored_upload[:summary]
+    assert_equal "Create upload", upload[:title]
+    assert_equal "Prepare a direct upload for this identity's picture.", upload[:summary]
+    assert_includes upload[:description], "The path id is the identity recording id"
+    assert_includes upload[:description], "filename, byte_size, checksum, and content_type"
+    assert_includes upload[:description], "MD5, Base64-encoded"
+    assert_includes upload[:description], "signed_blob_id, upload.url, upload.headers, and expires_at"
+    assert_includes upload[:description], "image/*"
+    assert_includes upload[:description], "10 MB"
+    assert_includes upload[:description], "5 minutes"
+    assert_includes upload[:description], "same actor"
+    refute_includes upload[:title], "Identity"
+    assert_equal ["Identity"], upload[:tags]
+    upload_id = upload[:parameters].find { |param| param["name"] == "id" }
+    assert upload_id["description"].present?
+    refute_equal "Path parameter id.", upload_id["description"]
+  end
+
+  test "create_upload then set_image stores the picture" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
+    bytes = TINY_PNG
+    ticket = call(:post, "/identities/#{identity.id}/actions/create_upload", @editor_token, upload_fields(bytes))
+    assert_response :success, response.body
+    signed_blob_id = ticket.fetch("signed_blob_id")
+    url = ticket.fetch("upload").fetch("url")
+    headers = ticket.fetch("upload").fetch("headers")
+    assert ticket.fetch("expires_at").present?
+
+    put_bytes(url, bytes, headers)
+    assert_includes [200, 204], response.status
+
+    set = call(
+      :post, "/identities/#{identity.id}/actions/identity_set_image", @editor_token,
+      signed_blob_id: signed_blob_id
+    )
+    assert_response :success, response.body
+    assert_equal identity.id, set.fetch("id")
+    image = RecordingStudioIdentity.image(identity.reload)
+    assert image
+    assert_equal "portrait.png", image.recordable.file.blob.filename.to_s
   end
 
   test "identity image actions do not leak onto other attachable api types" do
@@ -176,6 +277,27 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def image_operation(document, action_name)
+    _path, verbs = document[:paths].find do |path, _verbs|
+      path.include?("/identities/") && path.end_with?("/actions/#{action_name}")
+    end
+    verbs.fetch("post")
+  end
+
+  def upload_fields(bytes)
+    {
+      filename: "portrait.png",
+      byte_size: bytes.bytesize,
+      checksum: Base64.strict_encode64(Digest::MD5.digest(bytes)),
+      content_type: "image/png"
+    }
+  end
+
+  def put_bytes(url, bytes, headers)
+    uri = URI.parse(url)
+    put uri.request_uri, params: bytes, headers: headers.transform_keys(&:to_s)
+  end
 
   def user(name)
     User.create!(
