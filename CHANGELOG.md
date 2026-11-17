@@ -6,6 +6,18 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.6.1] - 2026-11-17
+
+### Changed
+
+- Rewrite the OpenAPI and MCP copy for `identity_set_image` and `identity_remove_image`. The action title is `Set image` or `Remove image`. MCP prefixes the recordable label, so the shown title is `Identity - Set image` or `Identity - Remove image`.
+- Describe `signed_blob_id`, the identity recording id, the returned identity JSON, edit access, trash, the one-image limit, `image/*`, and the 10 MB limit.
+- Group Identity API operations under the Identity docs tag.
+
+### Upgrade notes
+
+Pin `v0.6.1`. There is no identity migration. Routes, inputs, and image behavior are unchanged. `identity_set_image` still takes `signed_blob_id`. This resource still does not enable `create_upload`, `attach`, or `import_attachment`. Hosts that show MCP or OpenAPI docs pick up the new titles, descriptions, parameter text, and the Identity tag. No host code change is required.
+
 ## [0.6.0] - 2026-11-15
 
 ### Changed

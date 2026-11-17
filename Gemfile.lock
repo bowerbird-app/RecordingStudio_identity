@@ -126,7 +126,7 @@ GIT
 PATH
   remote: .
   specs:
-    recording_studio_identity (0.6.0)
+    recording_studio_identity (0.6.1)
       flat_pack (>= 0.1.362)
       rails (~> 8.1.0)
       recording_studio (>= 7.0, < 8.0)
@@ -529,7 +529,7 @@ CHECKSUMS
   recording_studio_api (0.23.4)
   recording_studio_attachable (0.26.0)
   recording_studio_icons (0.2.1)
-  recording_studio_identity (0.6.0)
+  recording_studio_identity (0.6.1)
   recording_studio_logs (0.7.5)
   recording_studio_metrics (0.8.0)
   recording_studio_moveable (4.2.0)

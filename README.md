@@ -127,7 +127,11 @@ When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity
 | POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_set_image` | `:edit` on the identity |
 | POST | `/recording_studio_api/api/v1/identities/:id/actions/identity_remove_image` | `:edit` on the identity |
 
-`parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`. `identity_set_image` takes `signed_blob_id`. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource.
+`parent_id` is required for index and create. Index paginates with `limit` and `pagination_token`. Writes send `name`, `kind`, `description`, and `website_url` at the root of the body. `kind` is required on create and must be a configured category. Update rejects `kind`.
+
+`identity_set_image` takes `signed_blob_id` from an Attachable direct upload prepared for that same identity. Attachable's `create_upload` action returns that id, plus `upload.url` and `upload.headers`. PUT the file bytes to `upload.url` with those headers, then call `identity_set_image`. This resource does not enable `create_upload`, `attach`, or `import_attachment`. A signed id from another recording or another actor is rejected. The signed-in upload route is `recordings/:recording_id/attachments/direct_uploads` on the Attachable engine. It returns the same signed id as `signed_id` and does not take an API token.
+
+Both image actions need edit access, reject a trashed identity, and return the same identity JSON as show. The picture is not in that JSON. Allowed files are `image/*`, up to 10 MB, and an identity holds one picture. `identity_remove_image` with no picture, or with a picture that is already trashed, succeeds and changes nothing. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource. The Identity docs tag groups these actions with the other identity operations.
 
 Install Recording Studio API in the host if you want the JSON surface:
 
