@@ -155,6 +155,57 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_equal RecordingStudioIdentity::Identity::CREATE_FIELDS, RecordingStudioIdentity::Api::FIELDS
   end
 
+  test "identity image docs name the upload, the recording id, and the Identity tag" do
+    document = RecordingStudioApi::Services::OpenapiDocument.call
+    set_image = image_operation(document, "identity_set_image")
+    remove_image = image_operation(document, "identity_remove_image")
+    stored_set = RecordingStudioApi.capability_action(:identity_set_image).openapi
+    stored_remove = RecordingStudioApi.capability_action(:identity_remove_image).openapi
+
+    assert_equal "Set image", stored_set[:title]
+    assert_equal "Store or replace the one picture on this identity.", stored_set[:summary]
+    assert_equal "The identity recording id. Create, list, and show return it as id.",
+                 stored_set[:parameters].first[:description]
+    assert_includes stored_set.dig(:responses, :"200", :description), "picture is not in this JSON"
+    assert_equal "Set image", set_image[:title]
+    assert_equal "Store or replace the one picture on this identity.", set_image[:summary]
+    assert_includes set_image[:description], "create_upload returns signed_blob_id"
+    assert_includes set_image[:description], "does not enable create_upload"
+    assert_includes set_image[:description], "image/*"
+    assert_includes set_image[:description], "10 MB"
+    assert_includes set_image[:description], "trashed identity is rejected"
+    refute_includes set_image[:title], "Identity"
+    refute_includes set_image[:summary], "Identity -"
+    assert_equal ["Identity"], set_image[:tags]
+
+    id_param = set_image[:parameters].find { |param| param["name"] == "id" }
+    assert_equal "The identity recording id. Create, list, and show return it as id.", id_param["description"]
+    refute_equal "Path parameter id.", id_param["description"]
+    refute_equal "Resource identifier.", id_param["description"]
+
+    blob = set_image.dig(:requestBody, :content, "application/json", :schema, :properties, "signed_blob_id")
+    assert_includes blob[:description], "create_upload returns it as signed_blob_id"
+    assert_includes set_image.dig(:responses, "200", "description"), "picture is not in this JSON"
+
+    assert_equal "Remove image", stored_remove[:title]
+    assert_equal "Remove the picture from this identity.", stored_remove[:summary]
+    assert_equal "Remove image", remove_image[:title]
+    assert_equal "Remove the picture from this identity.", remove_image[:summary]
+    assert_includes remove_image[:description], "changes nothing"
+    assert_includes remove_image[:description], "already trashed"
+    refute_includes remove_image[:title], "Identity"
+    refute_includes remove_image[:summary], "Identity -"
+
+    identity_group = document[:"x-tagGroups"].find { |group| group[:name] == "Identity" }
+    assert_includes identity_group[:tags], "Identity"
+    identity_tag = document[:tags].find { |tag| tag[:name] == "Identity" }
+    assert_equal "A public identity for a person, company, brand, or organisation. The id is the recording id.",
+                 identity_tag[:description]
+    registration = RecordingStudioApi.recordable_registration_for("RecordingStudioIdentity::Identity")
+    assert_equal ["Identity"], registration.openapi[:tags]
+    assert_equal "Identity", registration.openapi.dig(:tag, :group)
+  end
+
   test "identity image actions do not leak onto other attachable api types" do
     unless RecordingStudio.capability_enabled?(:attachable, for: "Page")
       RecordingStudio.enable_capability(:attachable, on: Page)
@@ -176,6 +227,11 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def image_operation(document, action_name)
+    _path, verbs = document[:paths].find { |path, _verbs| path.end_with?("/actions/#{action_name}") }
+    verbs.fetch("post")
+  end
 
   def user(name)
     User.create!(

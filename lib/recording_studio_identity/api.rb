@@ -59,7 +59,14 @@ module RecordingStudioIdentity
     end
 
     def openapi_docs
-      { details_schema: details_schema, **operation_docs }
+      { details_schema: details_schema, tag: tag_docs, tags: ["Identity"], **operation_docs }
+    end
+
+    def tag_docs
+      {
+        group: "Identity",
+        description: "A public identity for a person, company, brand, or organisation. The id is the recording id."
+      }
     end
 
     def details_schema
