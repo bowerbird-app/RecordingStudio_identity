@@ -11,7 +11,7 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 ### Changed
 
 - Rewrite the OpenAPI and MCP copy for `identity_set_image` and `identity_remove_image`. The action title is `Set image` or `Remove image`. MCP prefixes the recordable label, so the shown title is `Identity - Set image` or `Identity - Remove image`.
-- Describe `signed_blob_id`, the identity recording id, the returned identity JSON, edit access, trash, the one-image limit, `image/*`, and the 10 MB limit.
+- Describe `signed_blob_id`, the identity recording id, the returned identity JSON, edit access, trash, the one-image limit, `image/*`, and the 10 MB limit. The set image text says this gem leaves `create_upload` off. A host enables it by adding `:create_upload` to `capability_actions` in `RecordingStudioIdentity::Api.type_options`, or uses the signed-in Attachable direct upload route.
 - Group Identity API operations under the Identity docs tag.
 
 ### Upgrade notes

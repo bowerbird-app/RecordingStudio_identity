@@ -169,8 +169,9 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_includes stored_set.dig(:responses, :"200", :description), "picture is not in this JSON"
     assert_equal "Set image", set_image[:title]
     assert_equal "Store or replace the one picture on this identity.", set_image[:summary]
-    assert_includes set_image[:description], "create_upload returns signed_blob_id"
-    assert_includes set_image[:description], "does not enable create_upload"
+    assert_includes set_image[:description], "adding :create_upload to capability_actions"
+    assert_includes set_image[:description], "leaves create_upload off"
+    assert_includes set_image[:description], "signed-in Attachable route"
     assert_includes set_image[:description], "image/*"
     assert_includes set_image[:description], "10 MB"
     assert_includes set_image[:description], "trashed identity is rejected"
@@ -184,7 +185,7 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     refute_equal "Resource identifier.", id_param["description"]
 
     blob = set_image.dig(:requestBody, :content, "application/json", :schema, :properties, "signed_blob_id")
-    assert_includes blob[:description], "create_upload returns it as signed_blob_id"
+    assert_includes blob[:description], "adding :create_upload to capability_actions"
     assert_includes set_image.dig(:responses, "200", "description"), "picture is not in this JSON"
 
     assert_equal "Remove image", stored_remove[:title]

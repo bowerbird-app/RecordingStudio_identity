@@ -13,23 +13,23 @@ module RecordingStudioIdentity
                       "created_at, updated_at, name, kind, description, and website_url. " \
                       "The picture is not in this JSON."
 
-      SIGNED_BLOB_ID = "Signed id from an Attachable direct upload prepared for this identity. " \
-                       "create_upload returns it as signed_blob_id. PUT the file bytes to upload.url " \
-                       "with upload.headers first. This resource does not enable create_upload."
+      SIGNED_BLOB_ID = "Signed id for this identity. The host enables Attachable create_upload by adding " \
+                       ":create_upload to capability_actions in RecordingStudioIdentity::Api.type_options. " \
+                       "Or use the signed-in Attachable direct upload route. " \
+                       "PUT the file to the returned URL with the returned headers, then pass this id."
 
       SET_IMAGE_DESCRIPTION = [
         "The picture is the one Attachable image on this identity, stored under the name image.",
         "Use this to store the first picture or replace the current one.",
-        "Prepare the file with Attachable create_upload for this same identity.",
-        "create_upload returns signed_blob_id, upload.url, and upload.headers.",
-        "PUT the file bytes to upload.url with upload.headers, then pass signed_blob_id here.",
-        "This resource does not enable create_upload, attach, or import_attachment.",
+        "Get signed_blob_id before this call.",
+        "This gem leaves create_upload off.",
+        "The host enables it by adding :create_upload to capability_actions in RecordingStudioIdentity::Api.type_options.",
+        "Or use the signed-in Attachable route recordings/:recording_id/attachments/direct_uploads.",
+        "That route returns the signed id as signed_id and does not take an API token.",
+        "PUT the file bytes to the upload URL with the returned headers, then pass signed_blob_id here.",
         "A signed id from another recording or another actor is rejected.",
-        "The signed-in upload route is recordings/:recording_id/attachments/direct_uploads on the Attachable engine.",
-        "It returns the same signed id as signed_id and does not take an API token.",
         "Needs edit access. A trashed identity is rejected.",
-        "Allowed files are image types (image/*), up to 10 MB.",
-        "An identity holds one picture.",
+        "Allowed files are image types (image/*), up to 10 MB. An identity holds one picture.",
         "Replacing revises that attachment recording and restores it when it was trashed."
       ].join(" ")
 
