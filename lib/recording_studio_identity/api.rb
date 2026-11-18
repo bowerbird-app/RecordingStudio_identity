@@ -7,6 +7,7 @@ module RecordingStudioIdentity
   module Api
     TYPE = "RecordingStudioIdentity::Identity"
     FIELDS = %i[name kind description website_url].freeze
+    OUTPUT_KEYS = [*FIELDS, :image_url].freeze
 
     module_function
 
@@ -34,7 +35,7 @@ module RecordingStudioIdentity
         api:, operations: %i[index show create update], auto_capability_actions: false,
         capability_actions: %i[create_upload identity_set_image identity_remove_image],
         serializer: method(:serialize_fields),
-        output_keys: FIELDS, writable_attributes: FIELDS, immutable_fields: %i[kind],
+        output_keys: OUTPUT_KEYS, writable_attributes: FIELDS, immutable_fields: %i[kind],
         openapi: openapi_docs
       }
     end
@@ -52,8 +53,16 @@ module RecordingStudioIdentity
       end
     end
 
-    def serialize_fields(identity, **)
-      FIELDS.index_with { |field| identity.public_send(field) }
+    def serialize_fields(identity, context: nil, **)
+      FIELDS.index_with { |field| identity.public_send(field) }.merge(image_url: image_url_for(context&.recording))
+    end
+
+    def image_url_for(recording)
+      image = recording && RecordingStudioIdentity.image(recording)
+      return if image.nil?
+
+      rails_url = RecordingStudioAttachable::Engine.routes.url_helpers.attachment_file_path(image)
+      image.recordable.original_url(rails_url: rails_url)
     end
 
     def kind_values
@@ -78,7 +87,8 @@ module RecordingStudioIdentity
           name: { type: "string" },
           kind: { type: "string", enum: kind_values },
           description: { type: "string" },
-          website_url: { type: "string" }
+          website_url: { type: "string" },
+          image_url: { type: "string", nullable: true }
         }
       }
     end
@@ -95,7 +105,8 @@ module RecordingStudioIdentity
 
     def show_docs
       docs("Identity - Show",
-           "Returns one identity. Needs Accessible view on it. Identities outside this workspace are not found.")
+           "Returns one identity. Needs Accessible view on it. Identities outside this workspace are not found. " \
+           "image_url is the picture URL, or null when there is no picture or that picture is trashed.")
     end
 
     def create_docs
