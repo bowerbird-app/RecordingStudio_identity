@@ -7,6 +7,9 @@
   <% if idempotency_key %>
     <%= hidden_field_tag :idempotency_key, idempotency_key, id: nil %>
   <% end %>
+  <% if (return_path = identity_return_to) %>
+    <%= hidden_field_tag :return_to, return_path, id: nil %>
+  <% end %>
   <% if record.kind.present? && form_method.to_s == "post" %>
     <%= hidden_field_tag "identity[kind]", record.kind, id: nil %>
   <% end %>

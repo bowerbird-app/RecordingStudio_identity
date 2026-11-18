@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.7.0] - 2026-11-18
+
+### Added
+
+- Identity create and edit accept `return_to`. A safe path is carried from the category screen to the details form, and from the edit form, as a hidden field. After a successful create or update the screen redirects there. Cancel and back use it too.
+- `config.allow_return_to` is an optional callable. It receives a path that already passed the same-host check and can reject it. Leave it unset to allow every safe path.
+
+### Upgrade notes
+
+Pin `v0.7.0`. There is no identity migration. Hosts that do not pass `return_to` keep the redirect to the identity page. A safe path starts with one `/`. Protocol-relative paths, schemes, backslashes, and control characters are ignored. `config.allow_return_to` can narrow that set. It cannot make an unsafe value into a redirect.
+
 ## [0.6.1] - 2026-11-17
 
 ### Added

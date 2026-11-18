@@ -2,7 +2,7 @@
 
 module RecordingStudioIdentity
   class Configuration
-    attr_reader :hooks, :categories, :layout
+    attr_reader :hooks, :categories, :layout, :allow_return_to
     attr_writer :label, :plural_label
 
     def initialize
@@ -12,10 +12,17 @@ module RecordingStudioIdentity
       @label = nil
       @plural_label = nil
       @layout = nil
+      @allow_return_to = nil
     end
 
     def layout=(value)
       @layout = RecordingStudio::Layout.accept(value)
+    end
+
+    def allow_return_to=(checker)
+      raise ArgumentError, "allow_return_to must be callable" unless checker.nil? || checker.respond_to?(:call)
+
+      @allow_return_to = checker
     end
 
     def terminology
@@ -63,7 +70,8 @@ module RecordingStudioIdentity
         types: categories.map(&:key),
         creation: creation.to_h,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size),
-        layout: layout
+        layout: layout,
+        allow_return_to: allow_return_to
       }
     end
 

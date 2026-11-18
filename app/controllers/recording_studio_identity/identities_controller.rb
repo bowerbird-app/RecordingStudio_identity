@@ -4,8 +4,11 @@ require "securerandom"
 
 module RecordingStudioIdentity
   class IdentitiesController < ApplicationController
+    helper_method :identity_return_to
+
     before_action :set_parent, only: %i[index new create]
     before_action :set_identity, except: %i[index new create]
+    before_action :normalize_return_to, only: %i[new create edit update]
 
     def index
       @allowance = RecordingStudioIdentity.allowance(@parent)
@@ -48,12 +51,13 @@ module RecordingStudioIdentity
         **identity_params
       )
       import_posted_image!(identity) if submitted_image_blob_id.blank?
-      redirect_to identity_path(identity), notice: flash_was_added(identity), status: :see_other
+      redirect_to_saved_identity(identity, notice: flash_was_added(identity))
     rescue ImageRejected => e
       if identity
         redirect_to identity_path(identity), alert: user_message(e.message), status: :see_other
       else
-        redirect_to new_recording_identity_path(@parent), alert: user_message(e.message), status: :see_other
+        redirect_to new_recording_identity_path(@parent, **return_to_params),
+                    alert: user_message(e.message), status: :see_other
       end
     rescue Invalid => e
       @record = e.record
@@ -84,13 +88,14 @@ module RecordingStudioIdentity
       elsif remove_submitted_image?
         RecordingStudioIdentity.remove_image(identity, actor: current_identity_actor)
       end
-      redirect_to identity_path(identity), notice: flash_was_saved(identity), status: :see_other
+      redirect_to_saved_identity(identity, notice: flash_was_saved(identity))
     rescue Invalid => e
       @record = e.record
       @category = RecordingStudioIdentity.category_for(@identity)
       render :edit, status: :unprocessable_content
     rescue ImageRejected => e
-      redirect_to edit_identity_path(@identity), alert: user_message(e.message), status: :see_other
+      redirect_to edit_identity_path(@identity, **return_to_params),
+                  alert: user_message(e.message), status: :see_other
     end
 
     def destroy
@@ -133,6 +138,28 @@ module RecordingStudioIdentity
 
     def identity_kept?(recording)
       helpers.identity_kept?(recording)
+    end
+
+    def identity_return_to
+      RecordingStudioIdentity::ReturnTo.safe(string_param(:return_to))
+    end
+
+    def normalize_return_to
+      safe = identity_return_to
+      if safe
+        params[:return_to] = safe
+      else
+        params.delete(:return_to)
+      end
+    end
+
+    def return_to_params
+      path = identity_return_to
+      path ? { return_to: path } : {}
+    end
+
+    def redirect_to_saved_identity(identity, **flash_options)
+      redirect_to identity_return_to || identity_path(identity), status: :see_other, **flash_options
     end
 
     def set_parent

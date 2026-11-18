@@ -28,6 +28,9 @@
           description: "Choose the type of press profile you'd like to create.",
           continue_label: "Continue"
         }
+
+        # Optional. Narrows an already-safe return_to path.
+        config.allow_return_to = ->(path) { path.start_with?("/onboarding") }
       end
     CODE
   ) %>

@@ -1,9 +1,10 @@
 <% creation = RecordingStudioIdentity.creation %>
+<% return_path = identity_return_to %>
 <% content_for :title, creation.title %>
 <% flat_pack_page_nav(
   round: true,
   style: :default,
-  back_href: recording_identities_path(@parent),
+  back_href: return_path || recording_identities_path(@parent),
   back_tooltip: identity_t("navigation.back")
 ) %>
 
@@ -17,6 +18,9 @@
   <% end %>
 
   <%= form_with url: new_recording_identity_path(@parent), method: :get, class: "flex flex-col gap-4" do %>
+    <% if return_path %>
+      <%= hidden_field_tag :return_to, return_path, id: nil %>
+    <% end %>
     <%= render FlatPack::RadioGroup::Component.new(
       name: "kind",
       label: creation.title,
