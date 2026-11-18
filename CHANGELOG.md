@@ -10,7 +10,11 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
 ### Added
 
-- `RecordingStudio::Capabilities::Identities.to` accepts `trashable:`. It defaults to `true`. `trashable: false` stops identities on that parent from being trashed. Edit and show hide the trash button. The identity delete route flashes and does not trash. `recording_studio_trashable_trash!` raises `RecordingStudioIdentity::NotTrashable`. `can?(:trash)` is false. Editing still works. Images stay trashable. The identity JSON resource still does not expose trash. `POST .../actions/trashable_trash` and `DELETE /identities/:id` are refused.
+- `RecordingStudio::Capabilities::Identities.to` accepts `trashable:`. It defaults to `true`. `trashable: false` stops identities on that parent from being trashed. Edit hides the trash button. The identity delete route flashes and does not trash. `recording_studio_trashable_trash!` raises `RecordingStudioIdentity::NotTrashable`. `can?(:trash)` is false. Editing still works. Images stay trashable. The identity JSON resource still does not expose trash. `POST .../actions/trashable_trash` and `DELETE /identities/:id` are refused.
+
+### Changed
+
+- Add and edit use two Flatpack buttons instead of a button group. Save uses Flatpack unsaved-changes: it stays the default style until a field changes, then it becomes the primary button. Cancel is secondary. When the identity can be trashed, the trash button sits on the right of that row.
 
 ### Upgrade notes
 
