@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.8.0] - 2026-11-18
+
+### Added
+
+- Identity JSON includes `image_url` on show, index, create, update, `identity_set_image`, and `identity_remove_image`. The value is the picture URL from Attachable's configured URL mode, or null when there is no picture or that picture is trashed.
+
+### Upgrade notes
+
+Pin `v0.8.0`. There is no identity migration. No host code change is required. `image_url` is a new field. This gem does not pass `mode: :direct`, so an unset `direct_url_host` does not raise.
+
 ## [0.7.1] - 2026-11-18
 
 ### Added
