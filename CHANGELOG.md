@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.6.2] - 2026-11-18
+
+### Changed
+
+- The `create_upload` title is `Upload identity picture`. The summary is `Prepare an upload for this identity's picture.` MCP 0.36.3 and later show a documented action title as written, so the shown title is `Upload identity picture`. The action name stays `create_upload`.
+
+### Upgrade notes
+
+Pin `v0.6.2`. There is no identity migration. The route, inputs, and action name stay the same. Hosts that show MCP or OpenAPI docs pick up the new title and summary. No host code change is required.
+
 ## [0.6.1] - 2026-11-17
 
 ### Added
