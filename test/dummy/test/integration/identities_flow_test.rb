@@ -116,7 +116,12 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Change image"
     refute_includes response.body, "identity[kind]"
     assert_identity_form_order(response.body, removable: true)
-    assert_edit_trash_button(response.body, identity)
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    agency_identity = RecordingStudioIdentity.identities(@agency).find { |item| item.recordable.name == "Northwind" }
+    get recording_studio_identity.edit_identity_path(agency_identity)
+    assert_response :success
+    assert_edit_trash_button(response.body, agency_identity)
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer and creator", website_url: "https://example.com" }
@@ -170,6 +175,12 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "trash and restore keep the one slot" do
+    with_trashable_identities(Workspace, true) do
+      trash_and_restore_the_one_slot
+    end
+  end
+
+  def trash_and_restore_the_one_slot
     identity = RecordingStudioIdentity.identity(@studio)
 
     delete recording_studio_identity.identity_path(identity)
@@ -185,6 +196,34 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     post recording_studio_identity.restore_identity_path(identity)
     assert_redirected_to recording_studio_identity.identity_path(identity)
     assert_nil identity.reload.trashed_at
+  end
+
+  test "workspace hides trash and refuses a delete" do
+    identity = RecordingStudioIdentity.identity(@studio)
+
+    get recording_studio_identity.identity_path(identity)
+    assert_response :success
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    get recording_studio_identity.edit_identity_path(identity)
+    assert_response :success
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    delete recording_studio_identity.identity_path(identity)
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_nil identity.reload.trashed_at
+
+    follow_redirect!
+    assert_includes response.body, "Sarah Jones"
+    assert_includes response.body, "moved to the trash"
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    patch recording_studio_identity.identity_path(identity), params: {
+      identity: { name: "Sarah Jones", description: "Still the press profile", website_url: "https://example.com" }
+    }
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_equal "Still the press profile", identity.reload.recordable.description
+    assert_nil identity.trashed_at
   end
 
   test "a nested parent lists its identity" do
@@ -294,6 +333,14 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_equal "Getting Started", helpers.identity_recording_name(page)
     assert_equal "Name", helpers.identity_field_label(nil, :name)
     assert_equal page.id, helpers.identity_recording_name(RecordingStudio::Recording.new(id: page.id))
+  end
+
+  def with_trashable_identities(type, enabled)
+    previous = RecordingStudio.capability_options(:identities, for: type).to_h.symbolize_keys
+    RecordingStudio.set_capability_options(:identities, on: type, **previous, trashable: enabled)
+    yield
+  ensure
+    RecordingStudio.set_capability_options(:identities, on: type, **previous) if previous
   end
 
   def assert_page_nav_add_action(body)

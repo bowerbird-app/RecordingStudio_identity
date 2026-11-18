@@ -66,6 +66,15 @@ module RecordingStudioIdentity
     end
   end
 
+  class NotTrashable < Error
+    attr_reader :identity
+
+    def initialize(identity:)
+      @identity = identity
+      super("#{identity.recordable.name} can't be moved to the trash.")
+    end
+  end
+
   class ManyIdentitiesAllowed < ArgumentError; end
 
   class << self
@@ -98,6 +107,16 @@ module RecordingStudioIdentity
       return unless RecordingStudio.capability_enabled?(:identities, for: type)
 
       Slots.parse!(RecordingStudio.capability_options(:identities, for: type).to_h[:allow], type: type)
+    end
+
+    def trashable?(identity)
+      parent = identity!(identity).parent_recording
+      return true if parent.nil?
+
+      type = parent.recordable_type
+      return true unless RecordingStudio.capability_enabled?(:identities, for: type)
+
+      RecordingStudio.capability_options(:identities, for: type).to_h.fetch(:trashable, true) == true
     end
 
     def identities(parent, include_trashed: false)
@@ -239,7 +258,7 @@ module RecordingStudioIdentity
     def can_update?(identity, actor) = live_identity?(identity) && allowed?(identity, :edit, actor)
 
     def can_trash?(identity, actor)
-      live_identity?(identity) &&
+      live_identity?(identity) && trashable?(identity) &&
         RecordingStudioTrashable.authorized?(action: :trash, actor: actor, recording: identity)
     end
 
@@ -429,3 +448,13 @@ require "recording_studio_identity/slots"
 require "recording_studio_identity/capability"
 require "recording_studio_identity/copy"
 require "recording_studio_identity/display_helper"
+
+RecordingStudio.configuration.hooks.extend_model(:recording) do
+  def recording_studio_trashable_trash!(actor: nil, impersonator: nil, metadata: {})
+    if recordable_type == RecordingStudioIdentity::IDENTITY_TYPE && !RecordingStudioIdentity.trashable?(self)
+      raise RecordingStudioIdentity::NotTrashable.new(identity: self)
+    end
+
+    super
+  end
+end

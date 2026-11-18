@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.7.1] - 2026-11-18
+
+### Added
+
+- `RecordingStudio::Capabilities::Identities.to` accepts `trashable:`. It defaults to `true`. `trashable: false` stops identities on that parent from being trashed. Edit and show hide the trash button. The identity delete route flashes and does not trash. `recording_studio_trashable_trash!` raises `RecordingStudioIdentity::NotTrashable`. `can?(:trash)` is false. Editing still works. Images stay trashable. The identity JSON resource still does not expose trash. `POST .../actions/trashable_trash` and `DELETE /identities/:id` are refused.
+
+### Upgrade notes
+
+Pin `v0.7.1`. There is no identity migration. Leave `trashable:` unset to keep today's behaviour. Opt out per parent with `Identities.to(allow: :one, trashable: false)`. This is not a global config flag. Any other value raises `ConfigurationError`. Restore still works for an identity that is already in the trash. The dummy Workspace uses `trashable: false`. Agency and Project stay trashable.
+
 ## [0.7.0] - 2026-11-18
 
 ### Added

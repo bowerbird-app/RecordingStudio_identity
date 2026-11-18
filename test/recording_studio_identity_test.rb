@@ -269,6 +269,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes readme, "config.label"
     assert_includes readme, "config.plural_label"
     assert_includes readme, "allow: :one"
+    assert_includes readme, "trashable: false"
     assert_includes readme, "RecordingStudioIdentity.create"
     assert_includes readme, "JSON API and MCP"
     refute_includes readme, %w[Gem Template].join

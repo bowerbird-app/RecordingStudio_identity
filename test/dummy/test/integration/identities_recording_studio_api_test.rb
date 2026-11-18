@@ -133,6 +133,23 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_response :not_found, response.body
   end
 
+  test "json trash paths refuse a workspace identity and update still works" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
+
+    call(:post, "/identities/#{identity.id}/actions/trashable_trash", @editor_token)
+    assert_response :unprocessable_entity, response.body
+    assert_nil identity.reload.trashed_at
+
+    call(:delete, "/identities/#{identity.id}", @editor_token)
+    assert_response :unprocessable_entity, response.body
+    assert_nil identity.reload.trashed_at
+
+    updated = call(:patch, "/identities/#{identity.id}", @editor_token, description: "Still here")
+    assert_response :success, response.body
+    assert_equal "Still here", updated.fetch("description")
+    assert_nil identity.reload.trashed_at
+  end
+
   test "kind cannot change on update" do
     identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
 

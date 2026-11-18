@@ -63,6 +63,7 @@ en:
         was_added: "%{name} was added."
         was_saved: "%{name} was saved."
         in_trash: "%{name} is in the trash."
+        cant_trash: "%{name} can't be moved to the trash."
         was_restored: "%{name} was restored."
         cant_edit: "You can't edit %{name}."
         choose_image: "Choose an image to upload."

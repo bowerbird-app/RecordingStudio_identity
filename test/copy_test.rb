@@ -8,6 +8,8 @@ class CopyTest < Minitest::Test
     assert_equal "Only one identity is allowed here",
                  RecordingStudioIdentity::Copy.user_message("Only one identity is allowed here")
     assert_equal "Ada was added.", RecordingStudioIdentity::Copy.user_message("Ada was added.")
+    assert_equal "Ada can't be moved to the trash.",
+                 RecordingStudioIdentity::Copy.user_message("Ada can't be moved to the trash.")
     assert_equal "Only one identity is allowed here, but 2 identities are recorded",
                  RecordingStudioIdentity::Copy.user_message(
                    "Only one identity is allowed here, but 2 identities are recorded"

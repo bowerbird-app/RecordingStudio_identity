@@ -37,9 +37,12 @@ Trashable is enabled. Duplicatable and Orderable are not.
 ```ruby
 include RecordingStudio::Capabilities::Identities.to(allow: :one)
 include RecordingStudio::Capabilities::Identities.to(allow: :many)
+include RecordingStudio::Capabilities::Identities.to(allow: :one, trashable: false)
 ```
 
 `allow:` is required. Any other value raises `RecordingStudioIdentity::ConfigurationError` with the text `allow: :one or allow: :many`.
+
+`trashable:` defaults to `true`, which keeps today's behaviour. `false` stops identities on that parent from being trashed. Edit and show hide the trash button. A delete request flashes and leaves the identity in place. `RecordingStudioIdentity.can?(:trash, identity, actor:)` is false, and `recording_studio_trashable_trash!` raises `RecordingStudioIdentity::NotTrashable`. Editing still works. An identity that is already in the trash can still be restored. Any other value raises `ConfigurationError` with the text `trashable: must be true or false`. The option is per parent type. It is not a global `config` flag, because parent rules already live on `Identities.to`.
 
 `:one` allows a single identity. A trashed identity still occupies that slot until it is purged. A second create raises `RecordingStudioIdentity::IdentityAlreadyExists`. `:many` lists every live identity in name order.
 
@@ -138,7 +141,7 @@ When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity
 
 `create_upload` prepares a direct upload for that identity. It returns `signed_blob_id`, `upload.url`, `upload.headers`, and `expires_at`. PUT the file bytes to `upload.url` with `upload.headers`, then call `identity_set_image` with `signed_blob_id`. The upload URL and the signed id expire. The default lifetime is 5 minutes. The signed id only works for this identity and the same actor. Allowed files are `image/*`, up to 10 MB. A signed id from another recording or another actor is rejected. `attach` and `import_attachment` stay off.
 
-Both image actions need edit access, reject a trashed identity, and return the same identity JSON as show. The picture is not in that JSON. Allowed files are `image/*`, up to 10 MB, and an identity holds one picture. `identity_remove_image` with no picture, or with a picture that is already trashed, succeeds and changes nothing. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource. The Identity docs tag groups these actions with the other identity operations.
+Both image actions need edit access, reject a trashed identity, and return the same identity JSON as show. The picture is not in that JSON. Allowed files are `image/*`, up to 10 MB, and an identity holds one picture. `identity_remove_image` with no picture, or with a picture that is already trashed, succeeds and changes nothing. Those image actions use Identity's `:identity_image` capability, not attachable. Trash, restore, attach, import image, and hard destroy stay off this resource. `POST /identities/:id/actions/trashable_trash` and `DELETE /identities/:id` are refused, and the identity is not trashed. A direct `recording_studio_trashable_trash!` on an opted-out identity raises `NotTrashable`. The Identity docs tag groups these actions with the other identity operations.
 
 Install Recording Studio API in the host if you want the JSON surface:
 
@@ -162,16 +165,17 @@ RecordingStudioIdentity.remove_image(identity_recording, actor:)
 RecordingStudioIdentity.can?(:view, recording, actor:)
 ```
 
-`can?` accepts `:view`, `:create`, `:update`, `:trash`, and `:restore`.
+`can?` accepts `:view`, `:create`, `:update`, `:trash`, and `:restore`. `:trash` is false when the parent set `trashable: false`.
 
-Trash and restore use Trashable on the recording. There is no second wrapper.
+Trash and restore use Trashable on the recording. There is no second wrapper. When the parent opted out, trash raises `NotTrashable` before Trashable writes, so a direct call cannot bypass the screen.
 
 ```ruby
 identity_recording.recording_studio_trashable_trash!(actor:)
 identity_recording.recording_studio_trashable_restore!(actor:)
+RecordingStudioIdentity.trashable?(identity_recording)
 ```
 
-Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentFile`, `RemoveAttachment`). Content types must be images and the file must be at most 10 MB.
+Image bytes go through Attachable (`RecordAttachmentUpload`, `ReplaceAttachmentFile`, `RemoveAttachment`). Content types must be images and the file must be at most 10 MB. The image stays trashable when the identity is not. Removing an image still trashes that attachment.
 
 ## Creation and management UI
 
@@ -191,7 +195,7 @@ Pass `return_to` on new, create, edit, and update to come back to a host page af
 
 The category screen keeps the path in a hidden field, and Continue posts it on to the details form. The details and edit forms keep the same hidden field, including when save fails validation and the form renders again. Cancel and the back link use that path. A missing or ignored `return_to` leaves the previous links: back and cancel return to the identity list or the identity page, and a successful save opens the identity page. Flatpack also draws its page-nav close control to a safe `return_to`. An image that is rejected before the identity exists returns to the new form with the path still attached. An image rejected on update returns to edit the same way.
 
-`:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses that same column and the category labels. Delete is FlatPack's trash button in the layout top-right slot, and it expands left. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. The trash button moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
+`:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses that same column and the category labels. Delete is FlatPack's trash button in the layout top-right slot, and it expands left. The button is rendered only when trash is allowed. A parent with `trashable: false` hides it on edit and show. Delete then redirects back with a flash that the identity can't be moved to the trash, and the identity stays. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. When trash is allowed, the trash button moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
 
 ## Display components
 
@@ -209,7 +213,7 @@ Sizes follow FlatPack Avatar (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`). Shapes are `
 
 Accessible decides who can view and edit. Create is authorized on the parent. The identity recordable does not enable Accessible itself. Access walks the parent chain to the root.
 
-Attachable stores the optional image. Trashable cascades, so the image is trashed and restored with the identity.
+Attachable stores the optional image. Trashable cascades, so the image is trashed and restored with the identity when that identity can be trashed. An identity that cannot be trashed does not take its image with it. The image can still be removed on its own.
 
 State changes go through `RecordingStudio.record!` (which logs the created event) and `revise`. Retries pass `idempotency_key`. The gem uses `RecordingStudio::Hooks` and Attachable services that extend `RecordingStudio::Services::BaseService`. It does not copy those classes.
 
@@ -254,7 +258,7 @@ Enable the capability on each parent model, root or not.
 ```ruby
 class Workspace < ApplicationRecord
   recording_studio_recordable label: "Workspace", root: true
-  include RecordingStudio::Capabilities::Identities.to(allow: :one)
+  include RecordingStudio::Capabilities::Identities.to(allow: :one, trashable: false)
 end
 ```
 
@@ -264,7 +268,7 @@ Register your own recordable types in the Recording Studio initializer. The engi
 
 The dummy app at `test/dummy` signs in with `admin@admin.com` / `Password`.
 
-- Workspace `Studio Workspace` holds one identity.
+- Workspace `Studio Workspace` holds one identity, and that identity cannot be trashed. Agency and project identities still can.
 - Agency `Harbour Agency` holds many identities.
 - Project `Harbour fit-out` sits under the studio workspace and holds its own identities.
 - The agency create screen uses the configured title and continue label, and the category field labels. `creation.description` stays on the config object and is not shown on that screen.

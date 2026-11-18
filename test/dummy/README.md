@@ -6,8 +6,9 @@ This Rails app hosts RecordingStudioIdentity so identity screens can run inside 
 
 - Devise authentication with a seeded admin user
 - `Current.actor` wiring for Recording Studio events
-- A workspace that holds one press profile, an agency that holds many, and a project nested under a workspace. The dummy initializer names them press profiles and asks "Who is this press profile for?" on the category screen. Create and edit accept `return_to` and send a safe relative path back to the host page.
+- A workspace that holds one press profile, an agency that holds many, and a project nested under a workspace. The workspace opts out with `trashable: false`, so that press profile cannot be trashed. Agency and project press profiles still can. Images can still be removed. The dummy initializer names them press profiles and asks "Who is this press profile for?" on the category screen.
 - Recording Studio default layout, FlatPack assets, and Tailwind source scanning
+- Create and edit accept `return_to` and send a safe relative path back to the host page.
 - GitHub pins for Recording Studio `v7.3.0`, Accessible `v0.45.1`, Attachable `v0.31.0`, Trashable `v1.0.1`, Metrics `v0.9.0`, Cache `v0.7.0`, Root Switchable `v0.16.0`, FlatPack `v0.1.377`, and Recording Studio API `v1.2.1` (with Admin `v2.18.0`, Logs `v0.8.0`, Moveable `v6.0.0`, and Icons `v0.4.0`)
 - Mounted `RecordingStudio::Engine`, `RecordingStudioIdentity::Engine`, and Recording Studio API at `/recording_studio_api`
 - Dummy docs for install, configuration, and the public API
