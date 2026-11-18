@@ -27,6 +27,27 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Creation text"
   end
 
+  test "many index omits a trashed identity and renders no restore control" do
+    identity = RecordingStudioIdentity.identities(@agency).find { |item| item.recordable.name == "Northwind" }
+
+    delete recording_studio_identity.identity_path(identity)
+
+    assert_redirected_to recording_studio_identity.recording_identities_path(@agency)
+    assert identity.reload.trashed_at
+
+    follow_redirect!
+    get recording_studio_identity.recording_identities_path(@agency)
+
+    assert_response :success
+    refute_includes response.body, "Northwind"
+    refute_includes response.body, "In trash"
+    refute_includes response.body, "(in the trash)"
+    assert_select "button", text: "Restore", count: 0
+    assert_select "form[action=?]", recording_studio_identity.restore_identity_path(identity), count: 0
+    assert_includes response.body, "Dove"
+    assert_page_nav_add_action(response.body)
+  end
+
   test "many index lists identities and one index shows the occupant" do
     get recording_studio_identity.recording_identities_path(@agency)
 

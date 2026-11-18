@@ -14,7 +14,6 @@ module RecordingStudioIdentity
       @allowance = RecordingStudioIdentity.allowance(@parent)
       if @allowance == :many
         @identities = RecordingStudioIdentity.identities(@parent)
-        @trashed_identities = RecordingStudioIdentity.identities(@parent, include_trashed: true) - @identities
       else
         @identity = RecordingStudioIdentity.identity(@parent, include_trashed: true)
       end

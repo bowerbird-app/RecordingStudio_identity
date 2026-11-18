@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.10.0] - 2026-11-18
+
+### Changed
+
+- The identity list no longer shows trashed identities or a restore control. Trashable's screens manage trash.
+
+### Upgrade notes
+
+Pin `v0.10.0`. There is no identity migration. Mounted screens need no host change. Drop `trashed_identities` if you pass it into the gem list partial. The list omits trashed identities. Use Trashable's screens to restore them. The edit trash button, the show-page trash alert, and the one-slot vacancy alert stay.
+
 ## [0.9.0] - 2026-11-18
 
 ### Added
