@@ -40,6 +40,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudioIdentity.configure"
     assert_includes response.body, "config.types"
     assert_includes response.body, "config.creation"
+    assert_includes response.body, "config.image_view_policy"
     refute_includes response.body, template_placeholder
   end
 

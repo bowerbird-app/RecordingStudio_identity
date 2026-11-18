@@ -193,6 +193,73 @@ class ConfigurationTest < Minitest::Test
     assert_equal checker, @configuration.allow_return_to
   end
 
+  def test_image_view_policy_defaults_to_unset
+    assert_nil @configuration.image_view_policy
+    assert_nil @configuration.to_h.fetch(:image_view_policy)
+  end
+
+  def test_image_view_policy_accepts_a_class_or_callable_and_clears
+    policy = Class.new do
+      def self.call(action:, actor:, recording:, role:)
+        [action, actor, recording, role]
+      end
+    end
+    checker = ->(action:, actor:, recording:, role:) { [action, actor, recording, role] }
+
+    @configuration.image_view_policy = policy
+    assert_equal policy, @configuration.image_view_policy
+
+    @configuration.image_view_policy = checker
+    assert_equal checker, @configuration.image_view_policy
+    assert_equal checker, @configuration.to_h.fetch(:image_view_policy)
+
+    @configuration.image_view_policy = nil
+    assert_nil @configuration.image_view_policy
+  end
+
+  def test_image_view_policy_rejects_a_non_callable_and_keeps_the_previous_policy
+    checker = ->(action:, actor:, recording:, role:) { [action, actor, recording, role] }
+    @configuration.image_view_policy = checker
+
+    error = assert_raises(ArgumentError) { @configuration.image_view_policy = "PublicIdentityImage" }
+
+    assert_includes error.message, "image_view_policy"
+    assert_equal checker, @configuration.image_view_policy
+  end
+
+  def test_merge_sets_image_view_policy
+    checker = ->(action:, actor:, recording:, role:) { [action, actor, recording, role] }
+    @configuration.merge!(image_view_policy: checker)
+
+    assert_equal checker, @configuration.image_view_policy
+  end
+
+  def test_image_view_policy_is_forwarded_only_while_configured
+    configuration = RecordingStudioIdentity.configuration
+    previous = configuration.image_view_policy
+    configuration.image_view_policy = nil
+    refute RecordingStudioIdentity::ImageViewPolicy.respond_to?(:call)
+    assert RecordingStudioIdentity::ImageViewPolicy.respond_to?(:name)
+    error = assert_raises(NoMethodError) do
+      RecordingStudioIdentity::ImageViewPolicy.call(action: :view, actor: nil, recording: nil, role: :view)
+    end
+    assert_includes error.message, "image_view_policy"
+
+    seen = nil
+    configuration.image_view_policy = lambda { |action:, actor:, recording:, role:|
+      seen = [action, actor, recording, role]
+      true
+    }
+
+    assert RecordingStudioIdentity::ImageViewPolicy.respond_to?(:call)
+    assert RecordingStudioIdentity::ImageViewPolicy.call(
+      action: :view, actor: nil, recording: :identity, role: :view
+    )
+    assert_equal [:view, nil, :identity, :view], seen
+  ensure
+    configuration.image_view_policy = previous
+  end
+
   def test_removed_category_icon_alias_uses_a_flatpack_name
     category = RecordingStudioIdentity::Categories.parse(person: { icon: "user-round" }).first
 

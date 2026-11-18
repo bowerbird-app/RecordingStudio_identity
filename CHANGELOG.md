@@ -6,6 +6,34 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.9.0] - 2026-11-18
+
+### Added
+
+- `config.image_view_policy` is an optional class or callable. Identity passes it to Attachable as `authorize_with` for the identity picture. Attachable calls `call(action:, actor:, recording:, role:)`. `recording` is the identity. Return true to allow that action. Leave the setting unset and an anonymous visitor still cannot open the picture.
+
+### Upgrade notes
+
+Pin `v0.9.0`. There is no identity migration. Hosts that do not set `image_view_policy` keep the current file check. Set the policy in an initializer when a public press center should show the picture.
+
+```ruby
+class PublicIdentityImage
+  def self.call(action:, actor:, recording:, role:)
+    return true if action.to_sym == :view && public_press_center?(recording)
+
+    RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: role)
+  end
+
+  def self.public_press_center?(recording)
+    false
+  end
+end
+
+RecordingStudioIdentity.configure do |config|
+  config.image_view_policy = PublicIdentityImage
+end
+```
+
 ## [0.8.0] - 2026-11-18
 
 ### Added

@@ -2,7 +2,7 @@
 
 module RecordingStudioIdentity
   class Configuration
-    attr_reader :hooks, :categories, :layout, :allow_return_to
+    attr_reader :hooks, :categories, :layout, :allow_return_to, :image_view_policy
     attr_writer :label, :plural_label
 
     def initialize
@@ -13,6 +13,7 @@ module RecordingStudioIdentity
       @plural_label = nil
       @layout = nil
       @allow_return_to = nil
+      @image_view_policy = nil
     end
 
     def layout=(value)
@@ -23,6 +24,17 @@ module RecordingStudioIdentity
       raise ArgumentError, "allow_return_to must be callable" unless checker.nil? || checker.respond_to?(:call)
 
       @allow_return_to = checker
+    end
+
+    def image_view_policy=(policy)
+      if policy.nil?
+        @image_view_policy = nil
+        return
+      end
+
+      raise ArgumentError, "image_view_policy must respond to call" unless policy.respond_to?(:call)
+
+      @image_view_policy = policy
     end
 
     def terminology
@@ -71,7 +83,8 @@ module RecordingStudioIdentity
         creation: creation.to_h,
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size),
         layout: layout,
-        allow_return_to: allow_return_to
+        allow_return_to: allow_return_to,
+        image_view_policy: image_view_policy
       }
     end
 

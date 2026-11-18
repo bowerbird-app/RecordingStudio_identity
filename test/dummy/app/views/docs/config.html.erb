@@ -31,6 +31,9 @@
 
         # Optional. Narrows an already-safe return_to path.
         config.allow_return_to = ->(path) { path.start_with?("/onboarding") }
+
+        # Optional. Leave unset and an anonymous visitor cannot open the picture.
+        # config.image_view_policy = PublicIdentityImage
       end
     CODE
   ) %>
