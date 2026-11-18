@@ -1,9 +1,10 @@
+<% return_path = identity_return_to %>
 <% content_for :title, identity_t("titles.edit") %>
 <% content_for :subtitle, identity_category_label(@identity) %>
 <% flat_pack_page_nav(
   round: true,
   style: :default,
-  back_href: identity_path(@identity),
+  back_href: return_path || identity_path(@identity),
   back_tooltip: identity_t("navigation.back")
 ) %>
 <% recording_studio_page_nav_right do %>
@@ -22,7 +23,7 @@
         url: identity_path(@identity),
         form_method: :patch,
         submit_text: identity_t("actions.save"),
-        cancel_url: identity_path(@identity),
+        cancel_url: return_path || identity_path(@identity),
         unsaved_changes: true,
         include_image: true %>
 </div>

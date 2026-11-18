@@ -84,6 +84,12 @@ When `config.types` is omitted, the gem uses person, company, brand, and organis
 
 `config.creation` still accepts a title, description, and continue label. Blank values fall back to `config/locales/en.yml`. Set `description` to a blank string and the config object omits it. The category screen shows the title and the continue label. It does not render the description.
 
+`config.allow_return_to` is an optional callable for the create and edit screens. Pass `return_to` when you send someone through those screens and want them back on a host page, for example an onboarding step. The gem keeps the path when it is a relative path on this host: it starts with a single `/`, it is not protocol-relative (`//`), and it has no scheme. A backslash, an encoded slash in that first position, whitespace, and control characters are ignored too. A query string may contain a URL. Anything else is dropped, and create or update opens the identity page. When the callable is set, it receives that already-safe path. Return false to drop it. The callable cannot turn an unsafe value into a redirect. Leave it unset to allow every safe path.
+
+```ruby
+config.allow_return_to = ->(path) { path.start_with?("/onboarding") }
+```
+
 ## Public Ruby API
 
 Reads do not authorize. Writes require Accessible `:edit` on the parent or identity, and `RecordingStudio.record!` still runs the host `authorize_write` hook.
@@ -175,6 +181,15 @@ Routes are mounted with the engine. The default path is `/recording_studio_ident
 2. Details screen. From the `md` breakpoint the form is a two-column grid. The image, name, website, about, Save, and Cancel sit in column 1. The image uploader has no visible label. The file input keeps an accessible name. Cancel is a default-style button. Field labels come from that category.
 
 One configured category skips the category screen. Zero categories render an alert that tells the host to add a category. The details form does not offer an unrestricted kind change.
+
+Pass `return_to` on new, create, edit, and update to come back to a host page after a successful save.
+
+```text
+/recording_studio_identity/recordings/:recording_id/identities/new?return_to=/onboarding/next
+/recording_studio_identity/identities/:id/edit?return_to=/onboarding/next
+```
+
+The category screen keeps the path in a hidden field, and Continue posts it on to the details form. The details and edit forms keep the same hidden field, including when save fails validation and the form renders again. Cancel and the back link use that path. A missing or ignored `return_to` leaves the previous links: back and cancel return to the identity list or the identity page, and a successful save opens the identity page. Flatpack also draws its page-nav close control to a safe `return_to`. An image that is rejected before the identity exists returns to the new form with the path still attached. An image rejected on update returns to edit the same way.
 
 `:many` index lists live identities and an add action, plus trashed identities that can be restored. The add action is a default-style button in the layout top-right slot, and it is shown only when create is allowed. `:one` index shows the identity, or that same add action when the slot is empty. A trashed identity offers restore and still occupies the slot. Show hides blank description and website. Edit uses that same column and the category labels. Delete is FlatPack's trash button in the layout top-right slot, and it expands left. The image control is FlatPack's image input. Choosing a file direct-uploads a signed blob, and Save stores it with the identity. Clearing a saved image and saving removes it. `DELETE` on the image path still removes it immediately. The trash button moves the identity to the trash. The visible name of an identity follows `config.label` and `config.plural_label`.
 

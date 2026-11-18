@@ -9,6 +9,7 @@ require "recording_studio_identity/version"
 require "recording_studio_identity/categories"
 require "recording_studio_identity/terminology"
 require "recording_studio_identity/configuration"
+require "recording_studio_identity/return_to"
 require "recording_studio_identity/engine"
 
 # Public identities mounted under recordings that opt in.

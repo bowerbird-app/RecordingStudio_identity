@@ -1,9 +1,12 @@
+<% return_path = identity_return_to %>
+<% list_path = recording_identities_path(@parent) %>
+<% back_path = return_path || (@categories.one? ? list_path : new_recording_identity_path(@parent)) %>
 <% content_for :title, identity_t("titles.add") %>
 <% content_for :subtitle, @category&.label %>
 <% flat_pack_page_nav(
   round: true,
   style: :default,
-  back_href: (@categories.one? ? recording_identities_path(@parent) : new_recording_identity_path(@parent)),
+  back_href: back_path,
   back_tooltip: identity_t("navigation.back")
 ) %>
 
@@ -14,7 +17,7 @@
         url: recording_identities_path(@parent),
         form_method: :post,
         submit_text: identity_t("actions.save"),
-        cancel_url: recording_identities_path(@parent),
+        cancel_url: return_path || list_path,
         idempotency_key: @idempotency_key,
         include_image: true %>
 </div>

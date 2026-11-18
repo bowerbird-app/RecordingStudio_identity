@@ -19,4 +19,8 @@ RecordingStudioIdentity.configure do |config|
   #   description: "Choose the type of identity you'd like to create.",
   #   continue_label: "Continue"
   # }
+  #
+  # Optional. The screens already allow a relative return_to that starts with
+  # one slash. Return false to ignore that path.
+  # config.allow_return_to = ->(path) { path.start_with?("/onboarding") }
 end

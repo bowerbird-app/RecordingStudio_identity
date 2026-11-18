@@ -164,6 +164,35 @@ class ConfigurationTest < Minitest::Test
     assert_equal "focused", @configuration.layout
   end
 
+  def test_allow_return_to_accepts_a_callable_and_clears
+    checker = ->(path) { path == "/welcome" }
+    @configuration.allow_return_to = checker
+
+    assert_equal checker, @configuration.allow_return_to
+    assert_equal checker, @configuration.to_h.fetch(:allow_return_to)
+
+    @configuration.allow_return_to = nil
+
+    assert_nil @configuration.allow_return_to
+  end
+
+  def test_allow_return_to_rejects_a_non_callable_and_keeps_the_previous_checker
+    checker = ->(_path) { true }
+    @configuration.allow_return_to = checker
+
+    error = assert_raises(ArgumentError) { @configuration.allow_return_to = "/welcome" }
+
+    assert_includes error.message, "allow_return_to"
+    assert_equal checker, @configuration.allow_return_to
+  end
+
+  def test_merge_sets_allow_return_to
+    checker = ->(path) { path.start_with?("/onboarding") }
+    @configuration.merge!(allow_return_to: checker)
+
+    assert_equal checker, @configuration.allow_return_to
+  end
+
   def test_removed_category_icon_alias_uses_a_flatpack_name
     category = RecordingStudioIdentity::Categories.parse(person: { icon: "user-round" }).first
 

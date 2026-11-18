@@ -2,7 +2,7 @@
 <% flat_pack_page_nav(
   round: true,
   style: :default,
-  back_href: recording_identities_path(@parent),
+  back_href: identity_return_to || recording_identities_path(@parent),
   back_tooltip: identity_t("navigation.back")
 ) %>
 
