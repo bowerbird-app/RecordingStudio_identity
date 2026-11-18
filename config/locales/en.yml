@@ -23,9 +23,7 @@ en:
         save: "Save"
         cancel: "Cancel"
         delete: "Delete"
-        restore: "Restore"
         restore_identity: "Restore %{term}"
-        restore_aria: "Restore %{name}"
         view: "View"
         view_aria: "View %{name}"
       fields:
@@ -47,9 +45,6 @@ en:
         in_trash_title: "%{name} is in the trash"
         restore_hint: "Restore it to change it again."
         vacancy_description: "This %{type} holds one %{term}. Restore %{name} to use it again."
-        section_title: "In trash"
-        section_subtitle: "Restore %{article} %{term} to list it again."
-        in_trash_suffix: " (in the trash)"
       integrity:
         title: "%{name} has %{count} %{plural}"
         holds_one: "This %{type} holds one %{term}."
