@@ -93,6 +93,33 @@ When `config.types` is omitted, the gem uses person, company, brand, and organis
 config.allow_return_to = ->(path) { path.start_with?("/onboarding") }
 ```
 
+## Picture access
+
+`image_url` is Attachable's file route. Attachable checks `:view` on that route. Leave `config.image_view_policy` unset and that check stays Accessible's role check. An anonymous visitor is denied and sent to the root path. A signed-in member with view access still gets the file.
+
+Set `config.image_view_policy` to a class or callable. Identity passes that object to Attachable as `authorize_with`. Attachable calls it for each picture action. The arguments are `action:`, `actor:`, `recording:`, and `role:`. `recording` is the identity. `action` is `:view` for the inline file and the preview, and `:download` for the download route. Upload, revise, remove, and restore are the other actions. Return true to allow the action. Return false to deny it. Identity reads the setting when Attachable authorizes, so an initializer can assign the class after Identity has loaded. Identity does not allow or deny the request itself.
+
+```ruby
+class PublicIdentityImage
+  def self.call(action:, actor:, recording:, role:)
+    return true if action.to_sym == :view && public_press_center?(recording)
+
+    RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: role)
+  end
+
+  def self.public_press_center?(recording)
+    # True when this identity's press center is public.
+    false
+  end
+end
+
+RecordingStudioIdentity.configure do |config|
+  config.image_view_policy = PublicIdentityImage
+end
+```
+
+The example allows anonymous `:view` when the host says the press center is public. Every other action stays on Accessible, including a signed-in member opening a private picture.
+
 ## Public Ruby API
 
 Reads do not authorize. Writes require Accessible `:edit` on the parent or identity, and `RecordingStudio.record!` still runs the host `authorize_write` hook.

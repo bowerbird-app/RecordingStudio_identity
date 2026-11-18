@@ -24,7 +24,8 @@ module RecordingStudioIdentity
       enabled_attachment_kinds: [:image],
       max_file_size: 10.megabytes,
       max_file_count: 1,
-      auth_roles: { upload: :edit, revise: :edit, remove: :edit, restore: :edit }
+      auth_roles: { upload: :edit, revise: :edit, remove: :edit, restore: :edit },
+      authorize_with: ImageViewPolicy
     )
 
     normalizes :name, :description, :website_url, with: ->(value) { value.to_s.strip.presence }
