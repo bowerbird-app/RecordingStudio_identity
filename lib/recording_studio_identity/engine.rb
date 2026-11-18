@@ -149,6 +149,14 @@ module RecordingStudioIdentity
       RecordingStudio.enable_capability(:trashable, on: IMAGE_TYPE)
     end
 
+    # Identity trash checks the parent option before Trashable writes. The hook
+    # is registered when the gem loads. Apply it once Recording exists.
+    initializer "recording_studio_identity.trash_guard", after: "recording_studio.apply_model_extensions" do
+      config.to_prepare do
+        RecordingStudio::Engine.apply_model_extensions! if defined?(RecordingStudio::Recording)
+      end
+    end
+
     initializer "recording_studio_identity.slots" do
       config.to_prepare do
         RecordingStudioIdentity::Identity.table_name

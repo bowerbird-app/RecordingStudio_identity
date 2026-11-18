@@ -8,7 +8,7 @@
   <div class="grid gap-6 lg:grid-cols-2">
     <%= render "example",
           title: "One press profile",
-          body: "A workspace holds a single press profile. A trashed press profile keeps the slot until it is restored or purged.",
+          body: "A workspace holds a single press profile. That profile stays. It can't be moved to the trash.",
           href: (@studio && recording_studio_identity.recording_identities_path(@studio)) %>
     <%= render "example",
           title: "Many press profiles",

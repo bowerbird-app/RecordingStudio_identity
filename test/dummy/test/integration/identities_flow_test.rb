@@ -116,7 +116,13 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Change image"
     refute_includes response.body, "identity[kind]"
     assert_identity_form_order(response.body, removable: true)
-    assert_edit_trash_button(response.body, identity)
+    assert_includes response.body, 'data-theme="rounded"'
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    agency_identity = RecordingStudioIdentity.identities(@agency).find { |item| item.recordable.name == "Northwind" }
+    get recording_studio_identity.edit_identity_path(agency_identity)
+    assert_response :success
+    assert_edit_trash_button(response.body, agency_identity)
 
     patch recording_studio_identity.identity_path(identity), params: {
       identity: { name: "Sarah Jones", description: "Photographer and creator", website_url: "https://example.com" }
@@ -170,6 +176,12 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "trash and restore keep the one slot" do
+    with_trashable_identities(Workspace, true) do
+      trash_and_restore_the_one_slot
+    end
+  end
+
+  def trash_and_restore_the_one_slot
     identity = RecordingStudioIdentity.identity(@studio)
 
     delete recording_studio_identity.identity_path(identity)
@@ -185,6 +197,34 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     post recording_studio_identity.restore_identity_path(identity)
     assert_redirected_to recording_studio_identity.identity_path(identity)
     assert_nil identity.reload.trashed_at
+  end
+
+  test "workspace hides trash and refuses a delete" do
+    identity = RecordingStudioIdentity.identity(@studio)
+
+    get recording_studio_identity.identity_path(identity)
+    assert_response :success
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    get recording_studio_identity.edit_identity_path(identity)
+    assert_response :success
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    delete recording_studio_identity.identity_path(identity)
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_nil identity.reload.trashed_at
+
+    follow_redirect!
+    assert_includes response.body, "Sarah Jones"
+    assert_includes response.body, "moved to the trash"
+    assert_select "[data-controller~='flat-pack--trash-button']", count: 0
+
+    patch recording_studio_identity.identity_path(identity), params: {
+      identity: { name: "Sarah Jones", description: "Still the press profile", website_url: "https://example.com" }
+    }
+    assert_redirected_to recording_studio_identity.identity_path(identity)
+    assert_equal "Still the press profile", identity.reload.recordable.description
+    assert_nil identity.trashed_at
   end
 
   test "a nested parent lists its identity" do
@@ -296,6 +336,14 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_equal page.id, helpers.identity_recording_name(RecordingStudio::Recording.new(id: page.id))
   end
 
+  def with_trashable_identities(type, enabled)
+    previous = RecordingStudio.capability_options(:identities, for: type).to_h.symbolize_keys
+    RecordingStudio.set_capability_options(:identities, on: type, **previous, trashable: enabled)
+    yield
+  ensure
+    RecordingStudio.set_capability_options(:identities, on: type, **previous) if previous
+  end
+
   def assert_page_nav_add_action(body)
     document = Nokogiri::HTML(body)
     headings = document.css("h1")
@@ -317,19 +365,31 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
 
   def assert_edit_trash_button(body, identity)
     document = Nokogiri::HTML(body)
-    slot = document.at_css(".fp-top-nav__right")
-    refute_nil slot
-    control = slot.at_css("[data-controller~='flat-pack--trash-button']")
+    assert_nil document.at_css(".fp-top-nav__right [data-controller~='flat-pack--trash-button']")
+
+    identity_form = document.css("form").find { |node| node.at_css("[name='identity[name]']") }
+    refute_nil identity_form
+    assert_nil identity_form.at_css("[data-controller~='flat-pack--trash-button']")
+
+    control = document.at_css("[data-controller~='flat-pack--trash-button']")
     refute_nil control
     assert_equal "left", control["data-fp-expand"]
-    form = control.at_css("form")
-    refute_nil form
-    assert_equal recording_studio_identity.identity_path(identity), form["action"]
-    method = form.at_css("input[name='_method']")
+    assert_includes control.parent["class"].to_s, "justify-end"
+
+    row = control.ancestors("div").find { |node| node["class"].to_s.include?("md:grid-cols-2") }
+    refute_nil row
+    save = row.css("button").find { |button| button.text.include?("Save") }
+    refute_nil save
+    cancel = row.css("a").find { |node| node.text.include?("Cancel") }
+    refute_nil cancel
+
+    trash_form = control.at_css("form")
+    refute_nil trash_form
+    assert_equal recording_studio_identity.identity_path(identity), trash_form["action"]
+    method = trash_form.at_css("input[name='_method']")
     refute_nil method
     assert_equal "delete", method["value"]
     assert_nil document.at_css("#delete-identity")
-    assert_nil document.at_css("[data-identity-form-column='1'] #delete-identity")
   end
 
   def assert_category_kind_radios(body)
@@ -394,21 +454,27 @@ class IdentitiesFlowTest < ActionDispatch::IntegrationTest
     assert_empty field.css("label").map { |node| node.text.squish }.compact_blank
     assert file_input["aria-label"].present?
 
-    cancel = column.css("a").find { |node| node.text.include?("Cancel") }
+    cancel = form.css("a").find { |node| node.text.include?("Cancel") }
     refute_nil cancel
-    assert_equal "default", cancel["data-fp-style"]
-    refute_nil column.at_css(".fp-button-group-menu")
+    assert_equal "secondary", cancel["data-fp-style"]
+    assert_nil form.at_css(".fp-button-group-menu")
+    assert_includes form["data-controller"].to_s, "flat-pack--unsaved-changes"
+
+    save = form.css("button").find { |button| button.text.include?("Save") }
+    refute_nil save
+    assert_equal "default", save["data-fp-style"]
+    assert_equal "submit", save["type"]
+    assert_equal "submit", save["data-flat-pack--unsaved-changes-target"]
 
     fields = [
       field,
       form.at_css("[name='identity[name]']"),
       form.at_css("[name='identity[website_url]']"),
       form.at_css("[name='identity[description]']"),
-      column.css("button").find { |button| button.text.include?("Save") }
+      save
     ]
     assert fields.all?
     assert_equal fields, fields.sort
-    refute_nil column.css("button").find { |button| button.text.include?("Save") }
     refute_includes body, "You can add an image now or after the identity is saved."
     assert_nil document.at_css("form#remove-identity-image")
     assert_nil document.at_css("#delete-identity")

@@ -24,6 +24,7 @@ module RecordingStudioIdentity
       [/\A(.+) was added\.\z/, "flashes.was_added", :name],
       [/\A(.+) was saved\.\z/, "flashes.was_saved", :name],
       [/\A(.+) is in the trash\.\z/, "flashes.in_trash", :name],
+      [/\A(.+) can't be moved to the trash\.\z/, "flashes.cant_trash", :name],
       [/\A(.+) was restored\.\z/, "flashes.was_restored", :name],
       [/\AYou can't edit (.+)\.\z/, "flashes.cant_edit", :name],
       [/\A(.+) is already the identity here\z/, "flashes.already_identity", :name],

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.7.0", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.7.1", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
@@ -269,6 +269,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes readme, "config.label"
     assert_includes readme, "config.plural_label"
     assert_includes readme, "allow: :one"
+    assert_includes readme, "trashable: false"
     assert_includes readme, "RecordingStudioIdentity.create"
     assert_includes readme, "JSON API and MCP"
     refute_includes readme, %w[Gem Template].join

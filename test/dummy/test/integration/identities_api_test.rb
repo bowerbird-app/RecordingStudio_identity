@@ -85,6 +85,12 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   test "idempotency key returns the original recording even after trash" do
+    with_trashable_identities(Workspace, true) do
+      idempotency_after_trash
+    end
+  end
+
+  def idempotency_after_trash
     created = RecordingStudioIdentity.create(
       @workspace, actor: @actor, kind: "person", name: "Ada", idempotency_key: "ada-once"
     )
@@ -101,6 +107,12 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   test "one slot stays occupied while the identity is trashed" do
+    with_trashable_identities(Workspace, true) do
+      one_slot_stays_occupied_while_trashed
+    end
+  end
+
+  def one_slot_stays_occupied_while_trashed
     created = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
     created.recording_studio_trashable_trash!(actor: @actor)
 
@@ -155,13 +167,16 @@ class IdentitiesApiTest < ActiveSupport::TestCase
     identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
 
     assert RecordingStudioIdentity.can?(:view, @workspace, actor: @actor)
-    assert RecordingStudioIdentity.can?(:trash, identity, actor: @actor)
+    refute RecordingStudioIdentity.can?(:trash, identity, actor: @actor)
     refute RecordingStudioIdentity.can?(:create, @workspace, actor: stranger)
     assert_raises(RecordingStudioIdentity::NotAuthorized) do
       RecordingStudioIdentity.create(@workspace, actor: stranger, kind: "brand", name: "Other")
     end
     assert_raises(ArgumentError) { RecordingStudioIdentity.can?(:duplicate, identity, actor: @actor) }
     assert_empty RecordingStudioIdentity.identities(@agency)
+
+    agency_identity = RecordingStudioIdentity.create(@agency, actor: @actor, kind: "company", name: "Kept")
+    assert RecordingStudioIdentity.can?(:trash, agency_identity, actor: @actor)
   end
 
   test "a nested project can hold its own identities" do
@@ -226,6 +241,12 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   test "trashing an identity trashes its image and restore brings it back" do
+    with_trashable_identities(Workspace, true) do
+      trash_restores_the_image
+    end
+  end
+
+  def trash_restores_the_image
     identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
     RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
     identity.recording_studio_trashable_trash!(actor: @actor)
@@ -244,6 +265,37 @@ class IdentitiesApiTest < ActiveSupport::TestCase
     assert_raises(RecordingStudioIdentity::ConfigurationError) do
       RecordingStudio::Capabilities::Identities.to(allow: :one, label: "nope")
     end
+
+    error = assert_raises(RecordingStudioIdentity::ConfigurationError) do
+      RecordingStudio::Capabilities::Identities.to(allow: :one, trashable: :no)
+    end
+    assert_includes error.message, "true or false"
+    assert_equal false, RecordingStudio.capability_options(:identities, for: Workspace).to_h[:trashable]
+    assert_equal true, RecordingStudio.capability_options(:identities, for: Agency).to_h[:trashable]
+    assert_equal true, RecordingStudio.capability_options(:identities, for: Project).to_h[:trashable]
+  end
+
+  test "a workspace identity cannot be trashed and can still be edited" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @actor, kind: "person", name: "Ada")
+
+    refute RecordingStudioIdentity.trashable?(identity)
+    refute RecordingStudioIdentity.can?(:trash, identity, actor: @actor)
+    error = assert_raises(RecordingStudioIdentity::NotTrashable) do
+      identity.recording_studio_trashable_trash!(actor: @actor)
+    end
+    assert_equal "Ada can't be moved to the trash.", error.message
+    assert_nil identity.reload.trashed_at
+
+    revised = RecordingStudioIdentity.update(identity, actor: @actor, description: "Still here")
+    assert_equal "Still here", revised.recordable.description
+    assert_nil identity.reload.trashed_at
+
+    RecordingStudioIdentity.set_image(identity, signed_blob_id: issued_signed_id(identity), actor: @actor)
+    image = RecordingStudioIdentity.image(identity)
+    image.recording_studio_trashable_trash!(actor: @actor)
+    assert image.reload.trashed_at
+    assert_nil RecordingStudioIdentity.image(identity)
+    assert_nil identity.reload.trashed_at
   end
 
   test "field limits and http websites are enforced by the recordable" do
@@ -258,6 +310,14 @@ class IdentitiesApiTest < ActiveSupport::TestCase
   end
 
   private
+
+  def with_trashable_identities(type, enabled)
+    previous = RecordingStudio.capability_options(:identities, for: type).to_h.symbolize_keys
+    RecordingStudio.set_capability_options(:identities, on: type, **previous, trashable: enabled)
+    yield
+  ensure
+    RecordingStudio.set_capability_options(:identities, on: type, **previous) if previous
+  end
 
   def owned_root(klass)
     recordable = klass.create!(name: "#{klass.name} #{SecureRandom.hex(4)}")

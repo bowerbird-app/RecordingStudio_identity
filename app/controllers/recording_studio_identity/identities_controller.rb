@@ -99,10 +99,17 @@ module RecordingStudioIdentity
     end
 
     def destroy
-      if identity_kept?(@identity)
-        authorize_identity!(:trash, @identity)
-        @identity.recording_studio_trashable_trash!(actor: current_identity_actor)
+      unless identity_kept?(@identity)
+        return redirect_to recording_identities_path(@identity.parent_recording_id),
+                           notice: flash_in_trash(@identity), status: :see_other
       end
+
+      unless RecordingStudioIdentity.trashable?(@identity)
+        return redirect_to identity_path(@identity), alert: flash_cant_trash(@identity), status: :see_other
+      end
+
+      authorize_identity!(:trash, @identity)
+      @identity.recording_studio_trashable_trash!(actor: current_identity_actor)
       redirect_to recording_identities_path(@identity.parent_recording_id),
                   notice: flash_in_trash(@identity), status: :see_other
     end
@@ -249,6 +256,11 @@ module RecordingStudioIdentity
     def flash_in_trash(identity)
       name = identity.recordable.name
       identity_copy("flashes.in_trash", "#{name} is in the trash.", name: name)
+    end
+
+    def flash_cant_trash(identity)
+      name = identity.recordable.name
+      identity_copy("flashes.cant_trash", "#{name} can't be moved to the trash.", name: name)
     end
 
     def flash_was_restored(identity)

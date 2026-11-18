@@ -4,13 +4,14 @@ module RecordingStudio
   module Capabilities
     module Identities
       def self.to(**options)
-        unknown = options.keys - [:allow]
+        unknown = options.keys - %i[allow trashable]
         if unknown.any?
           raise RecordingStudioIdentity::ConfigurationError, "Unknown identities option(s): #{unknown.join(', ')}"
         end
 
         allowance = RecordingStudioIdentity::Slots.parse!(options[:allow])
-        RecordingStudio::Capabilities.include_for(:identities, allow: allowance) do |parent|
+        trashable = RecordingStudioIdentity::Slots.parse_trashable!(options.fetch(:trashable, true))
+        RecordingStudio::Capabilities.include_for(:identities, allow: allowance, trashable: trashable) do |parent|
           RecordingStudioIdentity::Slots.sync_parent_limit!(parent, allowance)
         end
       end

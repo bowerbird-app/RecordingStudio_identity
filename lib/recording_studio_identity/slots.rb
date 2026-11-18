@@ -18,6 +18,12 @@ module RecordingStudioIdentity
       raise ConfigurationError, "Identities#{where} need allow: :one or allow: :many (got #{value.inspect})"
     end
 
+    def parse_trashable!(value)
+      return value if [true, false].include?(value)
+
+      raise ConfigurationError, "Identities trashable: must be true or false (got #{value.inspect})"
+    end
+
     def verify!
       RecordingStudio.recordable_declarations
       unless RecordingStudio.configuration.recordable_types.include?(IDENTITY_TYPE)

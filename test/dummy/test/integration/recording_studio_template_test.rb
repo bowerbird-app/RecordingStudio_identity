@@ -68,7 +68,7 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     workspace_source = File.read(Rails.root.join("app/models/workspace.rb"))
     capability_source = File.read(RecordingStudioIdentity::Engine.root.join("lib/recording_studio_identity/capability.rb"))
 
-    assert_includes workspace_source, "include RecordingStudio::Capabilities::Identities.to(allow: :one)"
+    assert_includes workspace_source, "include RecordingStudio::Capabilities::Identities.to(allow: :one, trashable: false)"
     assert_includes capability_source, "RecordingStudio::Capabilities.include_for("
     assert_includes capability_source, "allowance = RecordingStudioIdentity::Slots.parse!(options[:allow])"
     assert_includes capability_source, "sync_parent_limit!(parent, allowance)"
@@ -77,6 +77,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     assert RecordingStudio.capability_enabled?(:accessible, for: Workspace)
     assert RecordingStudio.capability_enabled?(:identities, for: Workspace)
     assert_equal :one, RecordingStudio.capability_options(:identities, for: Workspace).to_h[:allow]
+    assert_equal false, RecordingStudio.capability_options(:identities, for: Workspace).to_h[:trashable]
+    assert_equal true, RecordingStudio.capability_options(:identities, for: Agency).to_h[:trashable]
     assert_equal :many, RecordingStudio.capability_options(:identities, for: Agency).to_h[:allow]
     assert_equal :many, RecordingStudio.capability_options(:identities, for: Project).to_h[:allow]
     refute RecordingStudio.capability_enabled?(:accessible, for: Folder)
