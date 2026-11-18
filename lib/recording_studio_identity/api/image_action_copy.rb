@@ -10,8 +10,8 @@ module RecordingStudioIdentity
       }.freeze
 
       IDENTITY_JSON = "The identity JSON from show. It includes id, type, parent_id, root_id, " \
-                      "created_at, updated_at, name, kind, description, and website_url. " \
-                      "The picture is not in this JSON."
+                      "created_at, updated_at, name, kind, description, website_url, and image_url. " \
+                      "image_url is the picture URL, or null when there is no picture or that picture is trashed."
 
       SIGNED_BLOB_ID = "Signed id from create_upload on this identity. " \
                        "PUT the file bytes to upload.url with upload.headers, then pass this id."

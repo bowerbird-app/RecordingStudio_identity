@@ -66,6 +66,83 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_response :success, response.body
     assert_nil RecordingStudioIdentity.image(identity.reload)
     assert_equal identity.id, removed.fetch("id")
+    assert_nil removed.fetch("image_url")
+  end
+
+  test "show returns image_url when the identity has a picture" do
+    identity = identity_with_picture
+    shown = call(:get, "/identities/#{identity.id}", @editor_token)
+
+    assert_response :success, response.body
+    assert_equal attachment_file_path(identity), shown.fetch("image_url")
+  end
+
+  test "show returns null image_url when the identity has no picture" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
+    shown = call(:get, "/identities/#{identity.id}", @editor_token)
+
+    assert_response :success, response.body
+    assert_nil shown.fetch("image_url")
+  end
+
+  test "identity_set_image returns image_url" do
+    identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
+    set = call(
+      :post, "/identities/#{identity.id}/actions/identity_set_image", @editor_token,
+      signed_blob_id: signed_png_id(identity)
+    )
+
+    assert_response :success, response.body
+    assert_equal attachment_file_path(identity.reload), set.fetch("image_url")
+  end
+
+  test "identity_remove_image returns null image_url" do
+    identity = identity_with_picture
+    removed = call(:post, "/identities/#{identity.id}/actions/identity_remove_image", @editor_token)
+
+    assert_response :success, response.body
+    assert_nil removed.fetch("image_url")
+    assert_nil RecordingStudioIdentity.image(identity.reload)
+
+    shown = call(:get, "/identities/#{identity.id}", @editor_token)
+    assert_response :success, response.body
+    assert_nil shown.fetch("image_url")
+  end
+
+  test "show image_url does not raise when direct_url_host is unset" do
+    configuration = RecordingStudioAttachable.configuration
+    previous_mode = configuration.url_mode
+    previous_host = configuration.direct_url_host
+    configuration.url_mode = :rails
+    configuration.direct_url_host = nil
+
+    identity = identity_with_picture
+    shown = call(:get, "/identities/#{identity.id}", @editor_token)
+
+    assert_nil configuration.direct_url_host
+    assert_response :success, response.body
+    assert_equal attachment_file_path(identity), shown.fetch("image_url")
+  ensure
+    configuration.url_mode = previous_mode
+    configuration.direct_url_host = previous_host
+  end
+
+  test "show image_url uses a configured direct url mode" do
+    configuration = RecordingStudioAttachable.configuration
+    previous_mode = configuration.url_mode
+    previous_host = configuration.direct_url_host
+    configuration.url_mode = :direct
+    configuration.direct_url_host = "images.example.com"
+
+    identity = identity_with_picture
+    shown = call(:get, "/identities/#{identity.id}", @editor_token)
+    key = RecordingStudioIdentity.image(identity).recordable.file.blob.key
+
+    assert_response :success, response.body
+    assert_equal "https://images.example.com/#{key}", shown.fetch("image_url")
+  ensure
+    configuration.url_mode = previous_mode
+    configuration.direct_url_host = previous_host
   end
 
   test "index paginates identities with limit and pagination_token" do
@@ -187,7 +264,7 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_equal "Store or replace the one picture on this identity.", stored_set[:summary]
     assert_equal "The identity recording id. Create, list, and show return it as id.",
                  stored_set[:parameters].first[:description]
-    assert_includes stored_set.dig(:responses, :"200", :description), "picture is not in this JSON"
+    assert_includes stored_set.dig(:responses, :"200", :description), "image_url is the picture URL"
     assert_equal "Set image", set_image[:title]
     assert_equal "Store or replace the one picture on this identity.", set_image[:summary]
     assert_includes set_image[:description], "Call create_upload on this identity first."
@@ -206,7 +283,9 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
 
     blob = set_image.dig(:requestBody, :content, "application/json", :schema, :properties, "signed_blob_id")
     assert_includes blob[:description], "create_upload on this identity"
-    assert_includes set_image.dig(:responses, "200", "description"), "picture is not in this JSON"
+    assert_includes set_image.dig(:responses, "200", "description"), "image_url is the picture URL"
+    assert_equal({ "type" => "string", "nullable" => true }, response_property(set_image, "image_url"))
+    assert_equal({ "type" => "string", "nullable" => true }, response_property(remove_image, "image_url"))
 
     assert_equal "Remove image", stored_remove[:title]
     assert_equal "Remove the picture from this identity.", stored_remove[:summary]
@@ -225,6 +304,11 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     registration = RecordingStudioApi.recordable_registration_for("RecordingStudioIdentity::Identity")
     assert_equal ["Identity"], registration.openapi[:tags]
     assert_equal "Identity", registration.openapi.dig(:tag, :group)
+    show = document[:paths]["/recording_studio_api/api/v1/identities/{id}"]["get"]
+    assert_includes show[:description], "image_url is the picture URL"
+    assert_equal({ "type" => "string", "nullable" => true }, response_property(show, "image_url"))
+    refute_includes registration.writable_attributes, "image_url"
+    assert_includes registration.output_keys, "image_url"
 
     upload = image_operation(document, "create_upload")
     stored_upload = RecordingStudioApi.capability_action(:create_upload).openapi_for(
@@ -294,6 +378,26 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def identity_with_picture
+    identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
+    call(
+      :post, "/identities/#{identity.id}/actions/identity_set_image", @editor_token,
+      signed_blob_id: signed_png_id(identity)
+    )
+    assert_response :success, response.body
+    identity.reload
+  end
+
+  def attachment_file_path(identity)
+    image = RecordingStudioIdentity.image(identity)
+    RecordingStudioAttachable::Engine.routes.url_helpers.attachment_file_path(image)
+  end
+
+  def response_property(operation, name)
+    properties = operation.dig(:responses, "200", "content", "application/json", "schema", "properties")
+    properties.fetch(name.to_s)
+  end
 
   def image_operation(document, action_name)
     _path, verbs = document[:paths].find do |path, _verbs|
