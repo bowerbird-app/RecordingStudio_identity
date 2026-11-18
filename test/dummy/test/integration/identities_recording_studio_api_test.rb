@@ -213,10 +213,10 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     stored_upload = RecordingStudioApi.capability_action(:create_upload).openapi_for(
       type: "RecordingStudioIdentity::Identity"
     )
-    assert_equal "Create upload", stored_upload[:title]
-    assert_equal "Prepare a direct upload for this identity's picture.", stored_upload[:summary]
-    assert_equal "Create upload", upload[:title]
-    assert_equal "Prepare a direct upload for this identity's picture.", upload[:summary]
+    assert_equal "Upload identity picture", stored_upload[:title]
+    assert_equal "Prepare an upload for this identity's picture.", stored_upload[:summary]
+    assert_equal "Upload identity picture", upload[:title]
+    assert_equal "Prepare an upload for this identity's picture.", upload[:summary]
     assert_includes upload[:description], "The path id is the identity recording id"
     assert_includes upload[:description], "filename, byte_size, checksum, and content_type"
     assert_includes upload[:description], "MD5, Base64-encoded"
