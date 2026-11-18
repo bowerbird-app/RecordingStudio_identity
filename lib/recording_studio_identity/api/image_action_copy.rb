@@ -28,7 +28,7 @@ module RecordingStudioIdentity
         "Replacing revises that attachment recording and restores it when it was trashed."
       ].join(" ")
 
-      CREATE_UPLOAD_SUMMARY = "Prepare a direct upload for this identity's picture."
+      CREATE_UPLOAD_SUMMARY = "Prepare an upload for this identity's picture."
 
       CREATE_UPLOAD_DESCRIPTION = [
         "Prepares a direct upload for this identity's one picture. This step does not attach the file.",
@@ -77,7 +77,7 @@ module RecordingStudioIdentity
         RecordingStudioAttachable::Api.override_openapi(
           type: TYPE,
           action: :create_upload,
-          title: "Create upload",
+          title: "Upload identity picture",
           summary: CREATE_UPLOAD_SUMMARY,
           description: CREATE_UPLOAD_DESCRIPTION
         )

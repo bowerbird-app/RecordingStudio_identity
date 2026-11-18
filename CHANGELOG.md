@@ -17,6 +17,16 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
 Pin `v0.7.0`. There is no identity migration. Hosts that do not pass `return_to` keep the redirect to the identity page. A safe path starts with one `/`. Protocol-relative paths, schemes, backslashes, and control characters are ignored. `config.allow_return_to` can narrow that set. It cannot make an unsafe value into a redirect.
 
+## [0.6.2] - 2026-11-18
+
+### Changed
+
+- The `create_upload` title is `Upload identity picture`. The summary is `Prepare an upload for this identity's picture.` MCP 0.36.3 and later show a documented action title as written, so the shown title is `Upload identity picture`. The action name stays `create_upload`.
+
+### Upgrade notes
+
+Pin `v0.6.2`. There is no identity migration. The route, inputs, and action name stay the same. Hosts that show MCP or OpenAPI docs pick up the new title and summary. No host code change is required.
+
 ## [0.6.1] - 2026-11-17
 
 ### Added
