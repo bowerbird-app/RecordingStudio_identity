@@ -6,6 +6,22 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.11.0] - 2026-11-19
+
+### Changed
+
+- Development and dummy apps pin Recording Studio `v7.8.0` (`~> 7.8`) and FlatPack `v0.2.0` (`~> 0.2`).
+- Root pins move to Accessible `v0.58.0` (`~> 0.58`), Admin `v2.20.0` (`~> 2.20`), API `v1.21.2` (`~> 1.21`), Attachable `v0.34.0` (`~> 0.34`), Icons `v0.5.0` (`~> 0.5`), Logs `v0.9.0` (`~> 0.9`), Metrics `v0.10.0` (`~> 0.10`), Moveable `v6.1.0` (`~> 6.1`), and Trashable `v1.3.0` (`~> 1.3`).
+- Dummy pins move to Accessible `v0.58.0` (`~> 0.58`), Admin `v2.20.0` (`~> 2.20`), API `v1.21.2` (`~> 1.21`), Attachable `v0.34.0` (`~> 0.34`), Cache `v0.8.0` (`~> 0.8`), Icons `v0.5.0` (`~> 0.5`), Logs `v0.9.0` (`~> 0.9`), Metrics `v0.10.0` (`~> 0.10`), Moveable `v6.1.0` (`~> 6.1`), Root Switchable `v0.17.0` (`~> 0.17`), and Trashable `v1.3.0` (`~> 1.3`).
+- The dummy importmap drops the `flat_pack/heroicons` pin. FlatPack 0.2 renders icons on the server.
+- Gemspec runtime floors stay the same.
+
+### Upgrade notes
+
+Pin `v0.11.0`. There is no identity migration. Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not. flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration. The dummy schema does not copy those Recording Studio migrations. Recording Studio API 1.21 loads `config/recording_studio_api.yml` at boot and raises when that file is missing. API clients need the optional `owner_type` and `owner_id` columns from API migration `20261117000024`.
+
+Compare [v0.10.0...v0.11.0](https://github.com/bowerbird-app/RecordingStudio_identity/compare/v0.10.0...v0.11.0).
+
 ## [0.10.0] - 2026-11-18
 
 ### Changed
