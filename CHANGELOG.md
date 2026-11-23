@@ -15,6 +15,7 @@ Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 ### Changed
 
 - Dummy and development apps pin Recording Studio API `v1.21.3` (`~> 1.21`) and Recording Studio MCP `v0.45.2` (`~> 0.45.2`). Dummy also pins Oauth `v0.26.1` and Site Settings `v0.7.0` so MCP can boot.
+- Dummy pins Puma `>= 8.1.2`, Brakeman `8.1.1`, and net-ssh `>= 7.3.10`. The root lockfile also pins Puma `>= 8.1.2`.
 
 ### Upgrade notes
 

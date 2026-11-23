@@ -104,7 +104,8 @@ class RecordingStudioIdentityTest < Minitest::Test
     )
     refute_includes gemfile, 'tag: "v0.6.2"'
     refute_includes gemfile, 'tag: "v0.6.0"'
-    assert_includes gemfile, 'gem "net-ssh", ">= 7.3.5"'
+    assert_includes gemfile, 'gem "net-ssh", ">= 7.3.10"'
+    assert_includes gemfile, 'gem "puma", ">= 8.1.2"'
     refute_includes gemfile, "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("dummy/config/boot.rb", __dir__)), "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("../Gemfile", __dir__)), "widen_recording_studio_requirement"
