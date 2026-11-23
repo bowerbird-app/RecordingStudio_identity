@@ -37,6 +37,8 @@ class McpCopyTest < Minitest::Test
     refute_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "stays in sync"
     assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "parent_id"
     assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "allow: :one"
+    assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "for example a press center"
+    refute_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "or workspace"
     assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "allow: :many"
   end
 

@@ -8,7 +8,7 @@ module RecordingStudioIdentity
         "company, brand, or organisation. Pass that parent's recording id as parent_id. The workspace " \
         "identity lives under the workspace. The press center identity lives under the press center. " \
         "Create the identity before you set its picture. Prepare the file with create_upload, then call " \
-        "identity_set_image. A one-slot parent (allow: :one, for example a press center or workspace) " \
+        "identity_set_image. A one-slot parent (allow: :one, for example a press center) " \
         "that already has an identity rejects a second create. A parent that allows many (allow: :many, " \
         "for example Agency or Project) can hold several."
 
