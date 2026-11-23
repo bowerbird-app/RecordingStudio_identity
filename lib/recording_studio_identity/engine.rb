@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "api"
+require_relative "mcp_copy"
 
 module RecordingStudioIdentity
   class Engine < ::Rails::Engine
@@ -170,6 +171,10 @@ module RecordingStudioIdentity
 
     initializer "recording_studio_identity.api" do
       config.to_prepare { Api.register! }
+    end
+
+    initializer "recording_studio_identity.mcp", after: "recording_studio_identity.api" do
+      config.to_prepare { McpCopy.register! }
     end
   end
 end

@@ -152,7 +152,19 @@ Live lists and lookups call `RecordingStudio::Recording.kept`. `include_trashed:
 
 ### JSON API and MCP
 
-When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity::Identity` on each configured API. MCP hosts that wrap that API get the same actions. Default API create is not used, because it would skip `RecordingStudioIdentity.create`.
+When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity::Identity` on each configured API, including public and operations. MCP hosts that wrap those APIs get the same actions as named tools: `list_identities`, `show_identity`, `create_identity`, `update_identity`, `identity_set_image`, and `identity_remove_image`. Workspace and press center identities share that set. Tell them apart by `parent_id`. Default API create is not used, because it would skip `RecordingStudioIdentity.create`. A one-slot parent (`allow: :one`, for example a press center) that already has an identity refuses a second create. A parent that allows many (`allow: :many`, for example Agency or Project) can hold several. `create_upload` stays with Attachable. There is no delete tool. `kind` cannot change on update. Hosts must add Identity to `list_parent_id_types` for `list_identities` to advertise `parent_id`.
+
+Hosts that mount Recording Studio MCP include the identity tool names on each named server:
+
+```ruby
+RecordingStudioMcp.register_server(:public, api: :public) do
+  include_tools(*RecordingStudioIdentity::McpCopy.tool_names)
+end
+
+RecordingStudioMcp.register_server(:operations, api: :operations, allow_sensitive: true) do
+  include_tools(*RecordingStudioIdentity::McpCopy.tool_names)
+end
+```
 
 | Verb | Path | Accessible role |
 |---|---|---|
@@ -178,7 +190,7 @@ bin/rails generate recording_studio_api:migrations
 bin/rails db:migrate
 ```
 
-Turn on `:api_access_point` on roots that should hold API clients, and add `RecordingStudioApi::ApiClient` to `access_actor_types`. Recording Studio MCP needs no extra identity code.
+Turn on `:api_access_point` on roots that should hold API clients, and add `RecordingStudioApi::ApiClient` to `access_actor_types`. Recording Studio MCP 0.45.2 named tools need the include above. When Site Settings is loaded, add `RecordingStudioSiteSettings::SiteSetting` to `config.recordable_types`.
 
 ```ruby
 RecordingStudioIdentity.categories
@@ -258,7 +270,7 @@ Pin the gem and its runtime dependencies, then install.
 gem "recording_studio_identity", github: "bowerbird-app/RecordingStudio_identity"
 ```
 
-Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 7.0`, `< 8.0`, Accessible `>= 0.42.0`, Attachable `>= 0.22.0`, Trashable `>= 0.16.0`, and FlatPack `>= 0.1.362`. Create a root with `RecordingStudio.create_root_recording!`. `root_recording_for` only finds one. The dummy app pins Recording Studio `v7.8.0` (`~> 7.8`), Accessible `v0.58.0` (`~> 0.58`), Attachable `v0.34.0` (`~> 0.34`), Trashable `v1.3.0` (`~> 1.3`), Metrics `v0.10.0` (`~> 0.10`), Cache `v0.8.0` (`~> 0.8`), Root Switchable `v0.17.0` (`~> 0.17`), FlatPack `v0.2.0` (`~> 0.2`), and Recording Studio API `v1.21.2` (`~> 1.21`) (with Admin `v2.20.0` (`~> 2.20`), Logs `v0.9.0` (`~> 0.9`), Moveable `v6.1.0` (`~> 6.1`), and Icons `v0.5.0` (`~> 0.5`)). `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel are separate Flatpack buttons. Save uses Flatpack unsaved-changes. Cancel is secondary. The trash button, when the identity can be trashed, sits on the right of that row. `config.authorize_write` must allow a root create when `root_recording` is nil.
+Runtime dependencies are Rails `~> 8.1.0`, Recording Studio `>= 7.0`, `< 8.0`, Accessible `>= 0.42.0`, Attachable `>= 0.22.0`, Trashable `>= 0.16.0`, and FlatPack `>= 0.1.362`. Create a root with `RecordingStudio.create_root_recording!`. `root_recording_for` only finds one. The dummy app pins Recording Studio `v7.8.0` (`~> 7.8`), Accessible `v0.58.0` (`~> 0.58`), Attachable `v0.34.0` (`~> 0.34`), Trashable `v1.3.0` (`~> 1.3`), Metrics `v0.10.0` (`~> 0.10`), Cache `v0.8.0` (`~> 0.8`), Root Switchable `v0.17.0` (`~> 0.17`), FlatPack `v0.2.0` (`~> 0.2`), and Recording Studio API `v1.21.3` (`~> 1.21`) (with Admin `v2.20.0` (`~> 2.20`), Logs `v0.9.0` (`~> 0.9`), Moveable `v6.1.0` (`~> 6.1`), Icons `v0.5.0` (`~> 0.5`), MCP `v0.45.2`, Oauth `v0.26.1`, and Site Settings `v0.7.0`). `config.layout` chooses another layout name, `false`, or a callable that takes `controller:`. Page headings use `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. Identity cards use FlatPack Card. Save and Cancel are separate Flatpack buttons. Save uses Flatpack unsaved-changes. Cancel is secondary. The trash button, when the identity can be trashed, sits on the right of that row. `config.authorize_write` must allow a root create when `root_recording` is nil.
 
 ```bash
 bin/rails generate recording_studio_identity:install

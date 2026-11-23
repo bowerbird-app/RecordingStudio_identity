@@ -16,7 +16,10 @@ gem "recording_studio_root_switchable", "~> 0.17", github: "bowerbird-app/Record
 gem "recording_studio_metrics", "~> 0.10", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.10.0"
 # Required by root_switchable (GitHub-only; not on RubyGems)
 gem "recording_studio_cache", "~> 0.8", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.8.0"
-gem "recording_studio_api", "~> 1.21", github: "bowerbird-app/RecordingStudio_api", tag: "v1.21.2"
+gem "recording_studio_api", "~> 1.21", github: "bowerbird-app/RecordingStudio_api", tag: "v1.21.3"
+gem "recording_studio_mcp", "~> 0.45.2", github: "bowerbird-app/RecordingStudio_MCP", tag: "v0.45.2"
+gem "recording_studio_oauth", "~> 0.26", github: "bowerbird-app/RecordingStudio_Oauth", tag: "v0.26.1"
+gem "recording_studio_site_settings", "~> 0.7", github: "bowerbird-app/RecordingStudio_site_settings", tag: "v0.7.0"
 gem "recording_studio_admin", "~> 2.20", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.20.0"
 gem "recording_studio_logs", "~> 0.9", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.9.0"
 gem "recording_studio_moveable", "~> 6.1", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.1.0"
@@ -24,7 +27,7 @@ gem "recording_studio_icons", "~> 0.5", github: "bowerbird-app/RecordingStudio_i
 gem "redis", "~> 5.3"
 
 # Kamal resolves net-ssh ~> 7.3. Keep the audited floor.
-gem "net-ssh", ">= 7.3.5"
+gem "net-ssh", ">= 7.3.10"
 
 # Devise authentication
 gem "devise"
@@ -36,7 +39,7 @@ gem "propshaft"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
+gem "puma", ">= 8.1.2"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
 # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]

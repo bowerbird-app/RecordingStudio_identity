@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioIdentityTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.11.0", ::RecordingStudioIdentity::VERSION
+    assert_equal "0.11.1", ::RecordingStudioIdentity::VERSION
   end
 
   def test_engine_exists
@@ -104,14 +104,24 @@ class RecordingStudioIdentityTest < Minitest::Test
     )
     refute_includes gemfile, 'tag: "v0.6.2"'
     refute_includes gemfile, 'tag: "v0.6.0"'
-    assert_includes gemfile, 'gem "net-ssh", ">= 7.3.5"'
+    assert_includes gemfile, 'gem "net-ssh", ">= 7.3.10"'
+    assert_includes gemfile, 'gem "puma", ">= 8.1.2"'
     refute_includes gemfile, "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("dummy/config/boot.rb", __dir__)), "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("../Gemfile", __dir__)), "widen_recording_studio_requirement"
     refute_includes File.read(File.expand_path("../Rakefile", __dir__)), "widen_recording_studio_requirement"
     refute File.exist?(File.expand_path("support/widen_recording_studio_requirement.rb", __dir__))
     assert_includes gemfile, recording_studio_pin(
-      "recording_studio_api", "~> 1.21", "bowerbird-app/RecordingStudio_api", "v1.21.2"
+      "recording_studio_api", "~> 1.21", "bowerbird-app/RecordingStudio_api", "v1.21.3"
+    )
+    assert_includes gemfile, recording_studio_pin(
+      "recording_studio_mcp", "~> 0.45.2", "bowerbird-app/RecordingStudio_MCP", "v0.45.2"
+    )
+    assert_includes gemfile, recording_studio_pin(
+      "recording_studio_oauth", "~> 0.26", "bowerbird-app/RecordingStudio_Oauth", "v0.26.1"
+    )
+    assert_includes gemfile, recording_studio_pin(
+      "recording_studio_site_settings", "~> 0.7", "bowerbird-app/RecordingStudio_site_settings", "v0.7.0"
     )
     assert_includes gemfile, recording_studio_pin(
       "recording_studio_admin", "~> 2.20", "bowerbird-app/RecordingStudio_admin", "v2.20.0"
@@ -268,6 +278,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     )
     assert_includes initializer_source, "RecordingStudioApi::AdminApi"
     assert_includes initializer_source, "admin_root_recordable_type_names"
+    assert_includes initializer_source, "RecordingStudioSiteSettings::SiteSetting"
     refute_includes initializer_source, "config.include_children"
     refute_includes initializer_source, "config.features."
     refute_includes initializer_source, "v3"
@@ -294,6 +305,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes readme, "trashable: false"
     assert_includes readme, "RecordingStudioIdentity.create"
     assert_includes readme, "JSON API and MCP"
+    assert_includes readme, "list_parent_id_types"
     refute_includes readme, %w[Gem Template].join
     refute_includes readme, %w[Recordingstudio Addon].join
     refute_includes readme, "dummy GitHub tag"

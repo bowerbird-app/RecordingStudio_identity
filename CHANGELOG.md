@@ -6,6 +6,23 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.11.1] - 2026-11-23
+
+### Added
+
+- Named MCP tools for identity on public and operations: `list_identities`, `show_identity`, `create_identity`, `update_identity`, `identity_set_image`, and `identity_remove_image`. Workspace and press center identities share that set and are told apart by `parent_id`. `kind` stays create-only. There is no delete tool. `create_upload` stays with Attachable. A one-slot parent (`allow: :one`) that already has an identity refuses a second create. A parent that allows many (`allow: :many`) can hold several.
+
+### Changed
+
+- Dummy and development apps pin Recording Studio API `v1.21.3` (`~> 1.21`) and Recording Studio MCP `v0.45.2` (`~> 0.45.2`). Dummy also pins Oauth `v0.26.1` and Site Settings `v0.7.0` so MCP can boot.
+- Dummy lockfile bumps Puma to `>= 8.1.2`, Brakeman to `8.1.1`, and net-ssh to `>= 7.3.10`. The root lockfile also bumps Puma to `>= 8.1.2`.
+
+### Upgrade notes
+
+Pin `v0.11.1`. There is no identity migration. Hosts that mount Recording Studio MCP should include `RecordingStudioIdentity::McpCopy.tool_names` on both the public and operations MCP servers. Add Identity to `list_parent_id_types` so `list_identities` advertises `parent_id`. Create still goes through `RecordingStudioIdentity.create`, so a one-slot parent that already has an identity refuses a second create. A parent that allows many can hold several. When a host loads Site Settings with MCP, add `RecordingStudioSiteSettings::SiteSetting` to `config.recordable_types`. Dummy MCP needs that type listed and the Site Settings migration applied.
+
+Compare [v0.11.0...v0.11.1](https://github.com/bowerbird-app/RecordingStudio_identity/compare/v0.11.0...v0.11.1).
+
 ## [0.11.0] - 2026-11-19
 
 ### Changed

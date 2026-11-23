@@ -14,4 +14,9 @@ RecordingStudioApi.configure do |config|
   # No admin root in this dummy. Default ["AdminRoot"] would make AdminApi
   # declare an unregistered parent when CI eager-loads the model.
   config.admin_root_recordable_type_names = []
+
+  config.api :operations do |api|
+    api.openapi_title = "Operations API"
+    api.api_versions = %w[v1]
+  end
 end
