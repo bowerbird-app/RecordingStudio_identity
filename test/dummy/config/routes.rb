@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   mount RecordingStudioAttachable::Engine, at: "/recording_studio_attachable"
   mount RecordingStudioIdentity::Engine, at: "/recording_studio_identity"
   mount RecordingStudioApi::Engine, at: "/recording_studio_api" if defined?(RecordingStudioApi)
+  mount RecordingStudioOauth::Engine, at: "/recording_studio_oauth" if defined?(RecordingStudioOauth)
+  mount RecordingStudioMcp::Engine, at: "/recording_studio_mcp" if defined?(RecordingStudioMcp)
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

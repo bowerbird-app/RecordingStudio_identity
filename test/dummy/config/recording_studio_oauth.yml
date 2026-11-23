@@ -1,0 +1,35 @@
+shared:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false
+  allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10
+
+development:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false
+  allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10
+
+test:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false
+  allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10
+
+production:
+  api_mount_path: "/recording_studio_api"
+  engine_mount_path: "/recording_studio_oauth"
+  mcp_mount_path: "/recording_studio_mcp"
+  register_origin_as_protected_resource: false
+  allow_registration: false
+  allow_self_registered_apps: false
+  self_registered_apps_per_minute: 10

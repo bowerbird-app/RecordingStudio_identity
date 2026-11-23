@@ -3,6 +3,9 @@
 RecordingStudio.configure do |config|
   # Registered delegated_type recordables (strings or classes)
   config.recordable_types = [ "Workspace", "Folder", "Page", "Agency", "Project" ]
+  if defined?(RecordingStudioSiteSettings)
+    config.recordable_types += [ "RecordingStudioSiteSettings::SiteSetting" ]
+  end
   if defined?(RecordingStudioApi)
     config.recordable_types += [
       "RecordingStudio::Access",

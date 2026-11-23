@@ -227,6 +227,22 @@ class IdentitiesRecordingStudioApiTest < ActionDispatch::IntegrationTest
     assert_nil identity.reload.trashed_at
   end
 
+  test "a second create on a one-slot parent is refused" do
+    created = call(
+      :post, "/identities", @editor_token,
+      parent_id: @workspace.id, kind: "person", name: "Ada Lovelace"
+    )
+    assert_response :created, response.body
+
+    call(
+      :post, "/identities", @editor_token,
+      parent_id: @workspace.id, kind: "brand", name: "Other"
+    )
+    assert_response :unprocessable_entity, response.body
+    assert_includes response.body, "already the identity here"
+    assert_equal created.fetch("id"), RecordingStudioIdentity.identities(@workspace).sole.id
+  end
+
   test "kind cannot change on update" do
     identity = RecordingStudioIdentity.create(@workspace, actor: @owner, kind: "person", name: "Ada")
 
