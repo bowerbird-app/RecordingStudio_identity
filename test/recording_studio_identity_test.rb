@@ -305,6 +305,7 @@ class RecordingStudioIdentityTest < Minitest::Test
     assert_includes readme, "trashable: false"
     assert_includes readme, "RecordingStudioIdentity.create"
     assert_includes readme, "JSON API and MCP"
+    assert_includes readme, "list_parent_id_types"
     refute_includes readme, %w[Gem Template].join
     refute_includes readme, %w[Recordingstudio Addon].join
     refute_includes readme, "dummy GitHub tag"

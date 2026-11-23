@@ -5,12 +5,12 @@ module RecordingStudioIdentity
     module Copy
       TYPE_DESCRIPTION =
         "An identity is the public name, kind, about text, website, and optional picture for a person, " \
-        "company, brand, or organisation. One identity sits under one parent. Pass that parent's recording " \
-        "id as parent_id. The workspace identity lives under the workspace. The press center identity lives " \
-        "under the press center. Signup creates both, and the workspace identity's name stays in sync with " \
-        "the workspace name. An invited signup does not get identities. Create the identity before you set " \
-        "its picture. Prepare the file with create_upload, then call identity_set_image. A parent that " \
-        "already has an identity rejects a second create."
+        "company, brand, or organisation. Pass that parent's recording id as parent_id. The workspace " \
+        "identity lives under the workspace. The press center identity lives under the press center. " \
+        "Create the identity before you set its picture. Prepare the file with create_upload, then call " \
+        "identity_set_image. A one-slot parent (allow: :one, for example a press center or workspace) " \
+        "that already has an identity rejects a second create. A parent that allows many (allow: :many, " \
+        "for example Agency or Project) can hold several."
 
       LIST_DESCRIPTION =
         "#{TYPE_DESCRIPTION} List identities under a parent. Pass that parent's recording id as parent_id. " \
@@ -23,7 +23,8 @@ module RecordingStudioIdentity
         "#{TYPE_DESCRIPTION} Create the identity under a parent. Pass that parent's recording id as parent_id. " \
         "Send name, kind, description, and website_url at the root, not nested under attributes. name and kind " \
         "are required. kind must be a configured category and cannot change later. description and website_url " \
-        "are optional. A parent that already has an identity rejects a second create.".freeze
+        "are optional. A one-slot parent that already has an identity rejects a second create. " \
+        "A parent that allows many can hold several.".freeze
 
       UPDATE_DESCRIPTION =
         "#{TYPE_DESCRIPTION} Update an identity. Pass its recording id as id. The identity must already exist. " \
@@ -33,19 +34,20 @@ module RecordingStudioIdentity
         "Sets or replaces the one picture on this identity.",
         TYPE_DESCRIPTION,
         "Pass the identity recording id as id.",
-        "Call create_upload first. It returns signed_blob_id, upload.url, and upload.headers.",
-        "PUT the file bytes to upload.url with upload.headers, then pass signed_blob_id here.",
-        "A signed id from another recording or another actor is rejected.",
-        "A trashed identity is rejected.",
-        "Allowed files are image types (image/*), up to 10 MB."
+        "Call create_upload first.",
+        Api::ImageActionCopy::CREATE_UPLOAD_RETURNS,
+        Api::ImageActionCopy::PUT_THEN_PASS_SIGNED_BLOB,
+        Api::ImageActionCopy::SIGNED_ID_REJECTED,
+        Api::ImageActionCopy::TRASHED_IDENTITY_REJECTED,
+        Api::ImageActionCopy::ALLOWED_IMAGE_FILES
       ].join(" ")
 
       REMOVE_IMAGE_DESCRIPTION = [
-        "Removes the picture from this identity. The name, kind, description, and website URL stay.",
+        Api::ImageActionCopy::REMOVE_KEEPS_FIELDS,
         TYPE_DESCRIPTION,
         "Pass the identity recording id as id.",
-        "A trashed identity is rejected.",
-        "If there is no picture, or that picture is already trashed, the call succeeds and changes nothing."
+        Api::ImageActionCopy::TRASHED_IDENTITY_REJECTED,
+        Api::ImageActionCopy::REMOVE_NO_PICTURE
       ].join(" ")
 
       NAME_FIELD = "Display name for this identity."

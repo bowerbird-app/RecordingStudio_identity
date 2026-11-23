@@ -16,15 +16,28 @@ module RecordingStudioIdentity
       SIGNED_BLOB_ID = "Signed id from create_upload on this identity. " \
                        "PUT the file bytes to upload.url with upload.headers, then pass this id."
 
+      CREATE_UPLOAD_RETURNS = "It returns signed_blob_id, upload.url, and upload.headers."
+      PUT_THEN_PASS_SIGNED_BLOB =
+        "PUT the file bytes to upload.url with upload.headers, then pass signed_blob_id here."
+      SIGNED_ID_REJECTED = "A signed id from another recording or another actor is rejected."
+      TRASHED_IDENTITY_REJECTED = "A trashed identity is rejected."
+      ALLOWED_IMAGE_FILES = "Allowed files are image types (image/*), up to 10 MB."
+      NEEDS_EDIT_ACCESS = "Needs edit access."
+      REMOVE_KEEPS_FIELDS =
+        "Removes the picture from this identity. The name, kind, description, and website URL stay."
+      REMOVE_NO_PICTURE =
+        "If there is no picture, or that picture is already trashed, the call succeeds and changes nothing."
+
       SET_IMAGE_DESCRIPTION = [
         "The picture is the one Attachable image on this identity, stored under the name image.",
         "Use this to store the first picture or replace the current one.",
         "Call create_upload on this identity first.",
-        "It returns signed_blob_id, upload.url, and upload.headers.",
-        "PUT the file bytes to upload.url with upload.headers, then pass signed_blob_id here.",
-        "A signed id from another recording or another actor is rejected.",
-        "Needs edit access. A trashed identity is rejected.",
-        "Allowed files are image types (image/*), up to 10 MB. An identity holds one picture.",
+        CREATE_UPLOAD_RETURNS,
+        PUT_THEN_PASS_SIGNED_BLOB,
+        SIGNED_ID_REJECTED,
+        NEEDS_EDIT_ACCESS,
+        TRASHED_IDENTITY_REJECTED,
+        "#{ALLOWED_IMAGE_FILES} An identity holds one picture.",
         "Replacing revises that attachment recording and restores it when it was trashed."
       ].join(" ")
 
@@ -44,9 +57,10 @@ module RecordingStudioIdentity
       ].join(" ")
 
       REMOVE_IMAGE_DESCRIPTION = [
-        "Removes the picture from this identity. The name, kind, description, and website URL stay.",
-        "Needs edit access. A trashed identity is rejected.",
-        "If there is no picture, or that picture is already trashed, the call succeeds and changes nothing.",
+        REMOVE_KEEPS_FIELDS,
+        NEEDS_EDIT_ACCESS,
+        TRASHED_IDENTITY_REJECTED,
+        REMOVE_NO_PICTURE,
         "Otherwise the attachment is trashed. This API does not restore it.",
         "A later set image revises that same attachment."
       ].join(" ")
