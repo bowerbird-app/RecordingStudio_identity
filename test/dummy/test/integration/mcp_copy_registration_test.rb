@@ -8,7 +8,9 @@ class McpCopyRegistrationTest < ActionDispatch::IntegrationTest
     identity_remove_image
     identity_set_image
     list_identities
+    show_current_identity
     show_identity
+    update_current_identity
     update_identity
   ].freeze
 
@@ -63,6 +65,56 @@ class McpCopyRegistrationTest < ActionDispatch::IntegrationTest
 
     update = RecordingStudioMcp.configuration.tool("update_identity")
     refute update.input.key?("kind")
+  end
+
+  test "current identity tools bind the root endpoints and omit id" do
+    RecordingStudioIdentity::McpCopy::CURRENT.each do |name|
+      tool = RecordingStudioMcp.configuration.tool(RecordingStudioIdentity::McpCopy.tool_name(name))
+      copy = RecordingStudioIdentity::McpCopy::CurrentCopy::CURRENT_COPY.fetch(name)
+
+      assert tool, "missing MCP tool #{name}"
+      assert_nil tool.type
+      assert_equal :endpoint, tool.target.kind
+      assert_equal name, tool.target.value
+      assert_equal copy.fetch(:title), tool.title
+      assert_equal copy.fetch(:description), tool.description
+      assert_equal copy.fetch(:input), tool.input
+      assert_equal copy.fetch(:output), tool.output
+      refute tool.input.key?("id")
+      refute tool.input.key?("parent_id")
+      refute tool.input.key?("kind")
+    end
+
+    %i[public operations].each do |api|
+      show = RecordingStudioApi.registered_endpoint(:show_current_identity, api: api)
+      update = RecordingStudioApi.registered_endpoint(:update_current_identity, api: api)
+
+      assert_equal :get, show.http_verb
+      assert_equal :patch, update.http_verb
+      assert_equal "current_identity", show.path
+      assert_equal "current_identity", update.path
+      assert_equal ["Identity"], show.openapi_tags
+    end
+  end
+
+  test "current identity docs tag follows the host setting" do
+    configuration = RecordingStudioIdentity.configuration
+    previous = configuration.current_identity_tag
+    configuration.current_identity_tag = "Workspace"
+    surface = RecordingStudioMcp::ToolSurface.for(api: :public)
+
+    %w[show_current_identity update_current_identity].each do |name|
+      endpoint = RecordingStudioApi.registered_endpoint(name, api: :public)
+      entry = surface.tool_entries.find { |item| item.definition[:name] == name }
+
+      assert_equal ["Workspace"], endpoint.openapi_tags
+      assert_equal ["Workspace"], RecordingStudioMcp::ToolDocs.tags_for_entry(entry, api: :public)
+    end
+
+    identity = surface.tool_entries.find { |item| item.definition[:name] == "show_identity" }
+    assert_equal ["Identity"], RecordingStudioMcp::ToolDocs.tags_for_entry(identity, api: :public)
+  ensure
+    configuration.current_identity_tag = previous
   end
 
   test "named image tools bind the identity image actions" do

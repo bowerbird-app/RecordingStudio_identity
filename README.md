@@ -154,6 +154,16 @@ Live lists and lookups call `RecordingStudio::Recording.kept`. `include_trashed:
 
 When Recording Studio API is loaded, this gem registers `RecordingStudioIdentity::Identity` on each configured API, including public and operations. MCP hosts that wrap those APIs get the same actions as named tools: `list_identities`, `show_identity`, `create_identity`, `update_identity`, `identity_set_image`, and `identity_remove_image`. Workspace and press center identities share that set. Tell them apart by `parent_id`. Default API create is not used, because it would skip `RecordingStudioIdentity.create`. A one-slot parent (`allow: :one`, for example a press center) that already has an identity refuses a second create. A parent that allows many (`allow: :many`, for example Agency or Project) can hold several. `create_upload` stays with Attachable. There is no delete tool. `kind` cannot change on update. Hosts must add Identity to `list_parent_id_types` for `list_identities` to advertise `parent_id`.
 
+`show_current_identity` and `update_current_identity` read and update the one identity on the root this API client is signed in to. They take no `id` and no `parent_id`. A root with no identity is an error. A root that allows many identities is an error. Use `show_identity` or `update_identity` and pass an id for that root. Update takes `name`, `description`, and `website_url` at the root of the input. `kind` cannot change. `McpCopy.tool_names` includes both names.
+
+Recording Studio MCP has no per-tool tag on a named operation. These two tools are endpoints, and MCP groups an endpoint by its OpenAPI tags. The default tag is `Identity`. Set `current_identity_tag` before docs are rendered when a host wants another group, for example Workspace:
+
+```ruby
+RecordingStudioIdentity.configure do |config|
+  config.current_identity_tag = "Workspace"
+end
+```
+
 Hosts that mount Recording Studio MCP include the identity tool names on each named server:
 
 ```ruby
@@ -168,6 +178,8 @@ end
 
 | Verb | Path | Accessible role |
 |---|---|---|
+| GET | `/recording_studio_api/api/v1/current_identity` | `:view` on the client's root |
+| PATCH | `/recording_studio_api/api/v1/current_identity` | `:edit` on the client's root |
 | GET | `/recording_studio_api/api/v1/identities?parent_id=` | `:view` on the parent |
 | GET | `/recording_studio_api/api/v1/identities/:id` | `:view` on the identity |
 | POST | `/recording_studio_api/api/v1/identities` | `:edit` on the parent |

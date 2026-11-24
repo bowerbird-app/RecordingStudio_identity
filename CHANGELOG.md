@@ -6,6 +6,24 @@ The format is based on Keep a Changelog, and this project uses Semantic Versioni
 
 Repository: https://github.com/bowerbird-app/RecordingStudio_identity
 
+## [0.12.0] - 2026-11-24
+
+### Added
+
+- `show_current_identity` and `update_current_identity` read and update the one identity on the API client's root. They take no `id` and no `parent_id`. A root with no identity is an error. A root that allows many identities is an error. Update takes `name`, `description`, and `website_url` at the root of the input. `kind` cannot change.
+
+### Upgrade notes
+
+Pin `v0.12.0`. There is no migration. Include the tools with `RecordingStudioIdentity::McpCopy.tool_names` on each MCP server. That list now includes `show_current_identity` and `update_current_identity`. The docs tag defaults to Identity. Set `config.current_identity_tag` to move those two tools into another group, for example Workspace. Recording Studio MCP has no per-tool tag on a named operation, so these tools are endpoints and the setting is what their OpenAPI tag reads.
+
+```ruby
+RecordingStudioIdentity.configure do |config|
+  config.current_identity_tag = "Workspace"
+end
+```
+
+Compare [v0.11.1...v0.12.0](https://github.com/bowerbird-app/RecordingStudio_identity/compare/v0.11.1...v0.12.0).
+
 ## [0.11.1] - 2026-11-23
 
 ### Added

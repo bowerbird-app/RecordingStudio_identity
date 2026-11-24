@@ -2,6 +2,7 @@
 
 require_relative "api/identity_resource"
 require_relative "api/image_actions"
+require_relative "api/current_identity"
 
 module RecordingStudioIdentity
   module Api
@@ -20,6 +21,7 @@ module RecordingStudioIdentity
     def register_api(api)
       register_type(api)
       register_resource_handlers(api)
+      CurrentIdentity.register!(api)
       ImageActions.register!(api)
       ImageActionCopy.document_create_upload
     end

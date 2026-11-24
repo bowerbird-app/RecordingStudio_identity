@@ -8,7 +8,9 @@ class McpCopyTest < Minitest::Test
     identity_remove_image
     identity_set_image
     list_identities
+    show_current_identity
     show_identity
+    update_current_identity
     update_identity
   ].freeze
 
@@ -40,6 +42,25 @@ class McpCopyTest < Minitest::Test
     assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "for example a press center"
     refute_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "or workspace"
     assert_includes RecordingStudioIdentity::McpCopy::TYPE_DESCRIPTION, "allow: :many"
+  end
+
+  def test_current_identity_copy_takes_no_id_and_rejects_kind
+    show = RecordingStudioIdentity::McpCopy::CurrentCopy::CURRENT_COPY.fetch(:show_current_identity)
+    update = RecordingStudioIdentity::McpCopy::CurrentCopy::CURRENT_COPY.fetch(:update_current_identity)
+
+    assert_equal "show_current_identity", RecordingStudioIdentity::McpCopy.tool_name(:show_current_identity)
+    assert_equal "update_current_identity", RecordingStudioIdentity::McpCopy.tool_name(:update_current_identity)
+    assert_empty show.fetch(:input)
+    assert_equal %w[description name website_url], update.fetch(:input).keys.sort
+    assert_includes show.fetch(:description), "no id"
+    assert_includes show.fetch(:description), "no parent_id"
+    assert_includes show.fetch(:description), "allow: :many"
+    assert_includes update.fetch(:description), "kind cannot change"
+    assert_includes update.fetch(:description), "at the root"
+    assert_equal "The identity on this root.", show.fetch(:output)
+    assert_equal "The identity after the change.", update.fetch(:output)
+    refute_includes show.fetch(:description), "Access"
+    refute_includes update.fetch(:description), "Access"
   end
 
   def test_register_does_not_raise_when_mcp_is_missing

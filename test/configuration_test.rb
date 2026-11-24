@@ -116,6 +116,21 @@ class ConfigurationTest < Minitest::Test
     assert_equal original, @configuration.categories.map(&:key)
   end
 
+  def test_current_identity_tag_defaults_to_identity_and_rejects_blank
+    assert_equal "Identity", @configuration.current_identity_tag
+    assert_equal "Identity", @configuration.to_h.fetch(:current_identity_tag)
+
+    @configuration.current_identity_tag = " Workspace "
+    assert_equal "Workspace", @configuration.current_identity_tag
+
+    @configuration.merge!(current_identity_tag: "Press")
+    assert_equal "Press", @configuration.current_identity_tag
+
+    error = assert_raises(ArgumentError) { @configuration.current_identity_tag = "  " }
+    assert_includes error.message, "current_identity_tag"
+    assert_equal "Press", @configuration.current_identity_tag
+  end
+
   def test_to_h_reports_registered_hook_counts
     @configuration.hooks.before_initialize { nil }
     @configuration.hooks.before_initialize { nil }

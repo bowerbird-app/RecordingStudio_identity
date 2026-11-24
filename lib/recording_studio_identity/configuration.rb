@@ -2,7 +2,7 @@
 
 module RecordingStudioIdentity
   class Configuration
-    attr_reader :hooks, :categories, :layout, :allow_return_to, :image_view_policy
+    attr_reader :hooks, :categories, :layout, :allow_return_to, :image_view_policy, :current_identity_tag
     attr_writer :label, :plural_label
 
     def initialize
@@ -14,6 +14,14 @@ module RecordingStudioIdentity
       @layout = nil
       @allow_return_to = nil
       @image_view_policy = nil
+      @current_identity_tag = "Identity"
+    end
+
+    def current_identity_tag=(value)
+      text = value.to_s.strip
+      raise ArgumentError, "current_identity_tag is required" if text.empty?
+
+      @current_identity_tag = text
     end
 
     def layout=(value)
@@ -84,7 +92,7 @@ module RecordingStudioIdentity
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size),
         layout: layout,
         allow_return_to: allow_return_to,
-        image_view_policy: image_view_policy
+        image_view_policy: image_view_policy, current_identity_tag: current_identity_tag
       }
     end
 
